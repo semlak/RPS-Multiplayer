@@ -1,5 +1,6 @@
-const theme = "animal"
-const initilGifLimit = 10;
+"use strict";
+
+
 
 function shuffleArray(arr) {
 	// returns a shuffled version of the array. Does not alter the input array
@@ -55,8 +56,8 @@ var config = {
 firebase.initializeApp(config);
 
 var database = firebase.database();
-
-
+var UsersRef = database.ref("Users");
+var GamesRef = database.ref("Games")
 
 
 
@@ -64,25 +65,29 @@ var database = firebase.database();
 
 var app = null;
 
-let RPSApp = class RPSApp {
-	constructor() {
-		this.gamme = new RPSGame("joe", "Xena", 5);
-	}
-
-}
-
-
-
-
-
-
 const GamePlay = {
 	ROCK: 1,
 	PAPER: 2,
 	SCISSORS: 3
 }
 
-
+let checkWin = function(play1, play2) {
+	// play1 and play2 are instances of GamePlay enumerable object
+	if (play1 === play2) {
+		//tie
+		return 0;
+	}
+	if ((play1 === GamePlay.ROCK && play2 !== GamePlay.PAPER) ||
+		(play1 === GamePlay.PAPER && play2 !== GamePlay.SCISSORS) ||
+		(play1 === GamePlay.SCISSORS && play2 !== GamePlay.ROCK)) {
+		// play 1 wins
+		return -1
+	}
+	else {
+		// play 2 wins
+		return 1;
+	}
+}
 
 
 
@@ -98,6 +103,7 @@ let RPSGame = class RPSGame {
 		this.ties = 0;
 
 
+
 		// Will game be best 2 out of 3, 3 out of 5, ..., the maxNumberOfGames would be 3 or 5 in those cases. This value should always be odd.
 		if (!maxNumberOfGames || maxNumberOfGames % 2 === 0) {
 			// I plan to prevent the UI from even allowing to get here, but in case that doesn't work, throw error. I might try to change to handle in better way
@@ -106,32 +112,168 @@ let RPSGame = class RPSGame {
 		else {
 			this.maxNumberOfGames = maxNumberOfGames;
 		}
-
 		this.player1LastPlay = undefined;
 		this.player1CurrentPlay = undefined;
 		this.player2LastPlay = undefined;
 		this.player2CurrentPlay = undefined;
-		this.createFirebaseListeners();
-		this.createAppEventListeners();
+		GamesRef.push({
+			player1: player1,
+			player2: player2,
+			player1Wins: 0,
+			player2Wins: 0,
+			ties: 0,
+			maxNumberOfGames
+		})
 
 	}
 
+
+}
+
+
+
+let RPSApp = class RPSApp {
+	constructor() {
+		app = this;
+		this.usersKnownByClient = new Map();
+		this.authUser = firebase.auth().currentUser;
+		console.log("auth user on App creation: ", this.authUser)
+		// if (this.authUser != null) {
+		this.createFirebaseListeners();
+
+		// }
+		this.createAppEventListeners();
+		this.gathering = new Gathering(database, 'OnlineUsers')
+		this.gathering.onUpdated(function(count, users) {
+			$("#user-table-body").empty();
+			console.log("gathering count", count, "users", users);
+			for (let uid in users) {
+				console.log("user is " , uid, users[uid])
+				// users.forEach(function(user) {
+				$("#user-table-body").append(
+					$("<tr>").html("<td class='btn btn-primary' data-uid='" + uid + "'>" + users[uid] + "</td>"
+						// + "<td>" + (user.online ? "Online" : "Offline") + "</td>"
+						// + "<td>" + (user.gameInProgress ? "In Game" : "Not in Game") + "</td>"
+						// employee.role + "</td><td>" +
+						// employee.startDate + "</td><td>" +
+						// monthsWorked + "</td><td>"
+					)
+					// .addClass(user.online ? "user-online" : "").addClass(user.gameInProgress ? "user-in-game" : "user-available")
+					.addClass("user-online user-available")
+					// .attr("data-uid", uid)
+				)
+
+			}
+		})
+
+		// this.game = new RPSGame("joe", "Xena", 5);
+	}
+	onUserAuth(user) {
+		console.log("in onUserAuth", user, user.displayName)
+		// database.ref("Users\/user.displayName").set({
+		// 	online: true,
+
+		// });
+		let userInfo = {
+			displayName: user.displayName,
+			uid: user.uid,
+			online: true,
+			gameInProgress: false
+		}
+		let key = user.uid;
+		console.log("adding userInfo", userInfo);
+		UsersRef.child(key).set({
+			displayName: user.displayName,
+			uid: user.uid,
+			online: true,
+			gameInProgress: false
+		})
+		app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+
+	}
+
+	tryToStartGame(event) {
+		console.log("tryig to start game");
+		let element = $(this);
+		console.log("element: ", element);
+		let playeruid = element.data("uid");
+		console.log("playeruid:", playeruid);
+		let useruid = firebase.auth().currentUser.uid;
+		app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+
+		if (useruid !== playeruid) {
+			app.game = new RPSGame(useruid, playeruid, 5);
+		}
+	}
+
 	createFirebaseListeners() {
-		database.ref().on("child_added", function(snapshot) {
-			let user= snapshot.val()
-			console.log("hey", user)
+		console.log("app: ", app);
+		console.log("app.game", app.game);
+		let authUser = app.authUser;
+		let usersKnownByClient = app.usersKnownByClient;
+
+		authUser = firebase.auth().currentUser;
+		if (authUser != null) {
+			usersKnownByClient.set(authUser.uid, authUser.displayName);
+			app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+
+
+		}
+		UsersRef.on("child_added", function(snapshot) {
+			authUser = firebase.auth().currentUser;
+			if (authUser != null) {
+				app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+			}
+
+			let user = snapshot.val()
+			// console.log("Users child_added", user, "authUser", authUser.uid)
+			usersKnownByClient.set(user.uid, user.displayName);
 			// return;
 			// let monthsWorked = Math.abs(moment(employee.startDate).diff(moment(), "months"))
-
-			$("#user-table-body").append(
-				$("<tr>").html("<td>" +user.name + "</td><td>" +
-					"Online" + "</td>"
-					// employee.role + "</td><td>" +
-					// employee.startDate + "</td><td>" +
-					// monthsWorked + "</td><td>"
+			// if (authUser != null && !usersKnownByClient.has(user.uid) && user.uid !== authUser.uid) {
+			if (authUser != null && user.uid !== authUser.uid) {
+				// if (true) {
+				$("#user-table-body").append(
+					$("<tr>").html("<td class='btn btn-primary' data-uid='" + user.uid + "'>" + user.displayName + "</td>" +
+						"<td>" + (user.online ? "Online" : "Offline") + "</td>" +
+						"<td>" + (user.gameInProgress ? "In Game" : "Not in Game") + "</td>"
+						// employee.role + "</td><td>" +
+						// employee.startDate + "</td><td>" +
+						// monthsWorked + "</td><td>"
+					).addClass(user.online ? "user-online" : "").addClass(user.gameInProgress ? "user-in-game" : "user-available")
+					.attr("data-uid", user.uid)
 				)
-			)
+
+			}
 		})
+
+		GamesRef.on("child_added", function(snapshot) {
+			authUser = app.authUser;
+			let game = snapshot.val();
+			if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
+				// this newly added game is a game for our player! Show the player the game interface.
+				console.log("Starting game play")
+			}
+		});
+
+		// Listen for changes in authorized user state
+		firebase.auth().onAuthStateChanged(function(user) {
+			if (user) {
+				console.log("detected change in auth user state. User is signed in.")
+				// User is signed in.
+				app.authUser = user;
+				app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+
+			}
+			else {
+				app.authUser = null;
+				app.gathering.leave();
+				// No user is signed in.
+			}
+		});
+		// firebase.auth().user().onCreate(function(event) {
+		// 	console.log("user created", event)
+		// })
 
 
 
@@ -155,52 +297,93 @@ let RPSGame = class RPSGame {
 		// })
 
 	}
-
+	getUsers() {
+		database.ref().on("Users", function(snapshot) {
+			console.log("snap", snapshot);
+			let users = snapshot.val();
+			console.log("users", users);
+		})
+	}
 	createAppEventListeners() {
+		$(document).on("click", ".user-available .btn", app.tryToStartGame);
+
+
 		$("#add-user").on("click", function() {
 			// Don't refresh the page!
 			console.log("detected click");
 			event.preventDefault();
-
-
-
-			// YOUR TASK!!!
-
-			// Code in the logic for storing and retrieving the most recent user.
-
-			// Don't forget to provide initial data to your Firebase database.
 			console.log($("#email-input").val());
-			let formName = $("#email-input").val().trim();
+			let displayName = $("#name-input").val().trim();
+			let email = $("#email-input").val().trim();
 			let password = $("#password-input").val().trim();
 			let passwordConfirm = $("#password-confirm").val().trim();
 
-			// if (password === passwordConfirm && formName.match("[a-zA-Z]+")) {
-			if (true) {
+			if (displayName.match("[a-zA-Z]+") && email.match("[a-zA-Z]+.*@.*[a-zA-Z]+.*[.][a-zA-Z]+") && password === passwordConfirm) {
+				// if (true) {
 
-				console.log(formName);
-				firebase.auth().createUserWithEmailAndPassword(formName, password).catch(function(error) {
-				  // Handle Errors here.
-				  var errorCode = error.code;
-				  var errorMessage = error.message;
-				  // ...
+				console.log(email);
+				firebase.auth().createUserWithEmailAndPassword(email, password).then(function(data) {
+					// app.createFirebaseListeners();
+					let user = firebase.auth().currentUser;
+
+					user.updateProfile({
+						displayName: displayName
+					}).then(_ => app.onUserAuth(user));
+
+				}).catch(function(error) {
+					// Handle Errors here.
+					var errorCode = error.code;
+					var errorMessage = error.message;
+					console.log("had error with firebase.auth()", error)
+					// ...
 				});
 
+				app.createFirebaseListeners();
 
 			}
-			// let formEmail = $("#email-input").val().trim();
-			// let formAge = $("#age-input").val().trim();
-			// let formMessage = $("#comment-input").val().trim();
-			// database.ref().push({
-			// 	name: formName
-			// });
+			else {
+				console.log("Form data is invalid. Display message");
+			}
 
 		});
 
+		$("#user-signin").on("click", function() {
+			// Don't refresh the page!
+			console.log("detected click");
+			event.preventDefault();
+			console.log($("#user-email").val());
+			let email = $("#user-email").val().trim();
+			let password = $("#user-password").val().trim();
+
+			if (email.length > 0 && password.length > 0) {
+
+				console.log(email);
+				firebase.auth().signInWithEmailAndPassword(email, password).then(function(data) {
+					console.log("user logged in", data);
+					// app.createFirebaseListeners();
+					app.onUserAuth(data);
+				}).catch(function(error) {
+					// Handle Errors here.
+					var errorCode = error.code;
+					var errorMessage = error.message;
+
+
+				});
+				app.createFirebaseListeners()
+
+			}
+
+		});
+
+
 		$("#logout-button").on("click", function() {
+			console.log("logging off")
 			firebase.auth().signOut().then(function() {
-			  // Sign-out successful.
+				// Sign-out successful.
+				console.log("Sign-out successful")
 			}).catch(function(error) {
-			  // An error happened.
+				console.log(error)
+				// An error happened.
 			});
 		})
 
@@ -225,7 +408,9 @@ let RPSGame = class RPSGame {
 		// 	// if (!recentMessage) recentMessage = initialMessage;
 		// });
 	}
+
 }
+
 
 
 
@@ -238,7 +423,7 @@ $("#options-submit").on("click", function(e) {
 })
 
 $(document).ready(function() {
-	app = new RPSApp("Joe", "Xena", 5);
+	let app = new RPSApp("Joe", "Xena", 5);
 	// $(document).popover({selector: '[rel=popover]'});
 
 	// window.addEventListener('load', function() {
