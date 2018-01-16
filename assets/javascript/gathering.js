@@ -25,7 +25,8 @@ var Gathering = (function() {
 
         this.join = function(uid, displayName) {
             if(this.user) {
-                console.error('Already joined.');
+                // console.error('Already joined.');
+                console.log('Already joined.');
                 return false;
             }
 

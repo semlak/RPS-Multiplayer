@@ -38,7 +38,13 @@ body {
 	color: #ccc
 }
 
+.card.user-authentication  {
+  display: none;
+}
 
+.card.game {
+  display: none;
+}
 
 /* the border for the topic search form input is difficult to see, so when invalid, increase border width */
 input.is-invalid {
