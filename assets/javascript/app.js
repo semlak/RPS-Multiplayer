@@ -68,7 +68,7 @@ let getPlay = function(action) {
 	else if (action === "paper") {
 		return GamePlay.PAPER;
 	}
-	else if (action === "scissors" ) {
+	else if (action === "scissors") {
 		return GamePlay.SCISSORS;
 	}
 	else {
@@ -151,11 +151,12 @@ let RPSApp = class RPSApp {
 		// }
 		this.createAppEventListeners();
 		this.gathering = new Gathering(database, 'OnlineUsers')
+		this.opponentActionListener = null;
 		this.gathering.onUpdated((count, users) => {
 			$("#user-table-body").empty();
-			console.log("gathering count", count, "users", users);
+			// console.log("gathering count", count, "users", users);
 			for (let uid in users) {
-				console.log("user is ", uid, users[uid])
+				// console.log("user is ", uid, users[uid])
 				if (uid !== this.authUser.uid) {
 					$("#user-table-body").append(
 						$("<tr>").html("<td class='btn btn-primary' data-uid='" + uid + "'>" + users[uid] + "</td>"
@@ -210,7 +211,7 @@ let RPSApp = class RPSApp {
 		$(".game #your-score").text(playerScore);
 		$(".game #opponent-score").text(opponentScore);
 		$(".game #ties").text(game.ties);
-		$(".btn.game-action").prop("disabled", false);
+		// $(".btn.game-action").prop("disabled", false);
 
 	}
 
@@ -287,6 +288,23 @@ let RPSApp = class RPSApp {
 				// 	app.updateGame(game)
 				// }
 				app.setGameID(snapshot.key);
+				GamesRef.child(app.gameID + "/player1Won").on("value", function(snapshot) {
+					// console.log  ("in player1Won listener, value", snapshot.val())
+					if (snapshot.val()) {
+						console.log("\n\n\n\n****** Player1 won entire match ******")
+						// console.log("player1 Won entire match!!")
+
+					}
+				})
+				GamesRef.child(app.gameID + "/player2Won").on("value", function(snapshot) {
+					// console.log  ("in player2Won listener, value", snapshot.val())
+					if (snapshot.val()) {
+						console.log("\n\n\n\n****** Player2 won entire match ******")
+						// console.log("player2 Won entire match!!")
+					}
+				})
+
+
 				UsersRef.child(authUser.uid + "/games").push({
 					gameid: snapshot.key
 				})
@@ -310,6 +328,8 @@ let RPSApp = class RPSApp {
 			console.log("game child_removed", game, "snapshot", snapshot);
 			if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
 				console.log("Gamed ended/canceled")
+				$(".card.game").hide();
+
 			}
 		})
 
@@ -399,44 +419,72 @@ let RPSApp = class RPSApp {
 			$(".btn.game-action").prop("disabled", true);
 			let player = playerid === game.player1 ? "player1" : "player2";
 			let opponent = playerid !== game.player1 ? "player1" : "player2";
-			GamesRef.child(app.gameID + "/" + player + "Actions").push(gameAction);
-			GamesRef.child(app.gameID + "/" + opponent + "Actions").once("child_added", function(snapshot) {
-				// when receive update,
-				if (snapshot.key !== app.lastOpponentAction) {
+			// GamesRef.child(app.gameID + "/" + player + "Actions").set({action: gameAction}).then(_ => {
+			GamesRef.child(app.gameID ).update({
+				[player + "Actions"]: gameAction
+			}).then(_ => {
+				console.log("action is pushed")
+				app.opponentActionListener  = GamesRef.child(app.gameID + "/" + opponent + "Actions").on("value", function(snapshot) {
+					// when receive update,
+					// if (snapshot.key !== app.lastOpponentAction) {
 					let opponentAction = snapshot.val();
-					app.lastOpponentAction = snapshot.key;
-					console.log("snapshot.key", snapshot.key)
-					console.log("opponentAction", opponentAction)
-					let outcome = checkWin(getPlay(gameAction), getPlay(opponentAction))
-					console.log(outcome)
-					if (outcome === 0) {
-						console.log("Game tied!")
-						// GamesRef.child(app.gameID + "/"
-						// 	ties).
-					}
-					else if (outcome < 0) {
-						console.log("\n\n\n\n****** You won ******")
-						GamesRef.child(app.gameID).once('value', snapshot => {
-							let oldWins =  snapshot.val()[player + "Wins"]
-							console.log("oldWins", oldWins);
-							let newWins = oldWins + 1
-							console.log("newWins", newWins);
-							GamesRef.child(app.gameID).update({
-								[player + "Wins"]: newWins
-							})
+					if (typeof opponentAction === "string" &&  opponentAction.match(/(rock|paper|scissors)/)) {
+						// app.lastOpponentAction = snapshot.key;
+						$(".btn.game-action").prop("disabled", false);
+
+						GamesRef.child(app.gameID + "/" + opponent + "Actions").off();
+
+						GamesRef.child(app.gameID).update({
+							[player + "Actions"]: null
 						})
-					}
-					else {
-						console.log("\n\n\n\n****** You lost ******")
+						console.log("snapshot.key", snapshot.key)
+						console.log("opponentAction", opponentAction)
+						let outcome = checkWin(getPlay(gameAction), getPlay(opponentAction))
+						console.log(outcome)
+						if (outcome === 0) {
+							console.log("Game tied!")
+							GamesRef.child(app.gameID).once('value', snapshot => {
+								let oldTies = snapshot.val().ties;
+								// console.log("oldWins", oldWins);
+								let newTies = oldTies + 1
+								console.log("newTies", newTies);
+								GamesRef.child(app.gameID).update({
+									ties: newTies,
+								})
+							})
+						}
+						else if (outcome < 0) {
+							console.log("*You won that round")
+							GamesRef.child(app.gameID).once('value', snapshot => {
+								let oldWins = snapshot.val()[player + "Wins"]
+								console.log("oldWins", oldWins);
+								let newWins = oldWins + 1
+								let playerWon = false;
+								if (newWins >= Math.floor(game.maxNumberOfGames / 2) + 1) {
+									playerWon = true;
+								}
+								console.log("newWins", newWins);
+								console.log(player + " Won?", playerWon)
+								GamesRef.child(app.gameID).update({
+									[player + "Wins"]: newWins,
+									[player + "Won"]: playerWon
+								})
+							})
+						}
+						else {
+							console.log("*You lost that round")
+							// console.log("\n\n\n\n****** You lost ******")
+
+						}
 
 					}
+					// console.log("opponentActions", opponentActions);
+					// let opponentAction = opponentActions[opponentActions.length - 1]
 
-				}
-				// console.log("opponentActions", opponentActions);
-				// let opponentAction = opponentActions[opponentActions.length - 1]
+				});
+
 
 			});
-
 
 			// gameid: snapshot.key
 		})
