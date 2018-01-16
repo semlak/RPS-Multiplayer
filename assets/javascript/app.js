@@ -207,7 +207,7 @@ let RPSApp = class RPSApp {
 		let opponentScore = game.player1 !== user.uid ? game.player1Wins : game.player2Wins;
 		let playerScore = game.player1 === user.uid ? game.player1Wins : game.player2Wins;
 		$(".card.game").show();
-
+		$(".card#available-users").hide();
 		$(".game #your-score").text(playerScore);
 		$(".game #opponent-score").text(opponentScore);
 		$(".game #ties").text(game.ties);
@@ -288,6 +288,14 @@ let RPSApp = class RPSApp {
 				// 	app.updateGame(game)
 				// }
 				app.setGameID(snapshot.key);
+				GamesRef.child(app.gameID + "/chat").on("child_added", function(snapshot){
+					let message = snapshot.val();
+					let text = message.text;
+					// console.log("message.text: ", text);
+					$(".game.chat .card-body").prepend($("<p>").html("<span class='playerid " + ( message.playerID === authUser.uid ? "player" : "opponent")+"'>" +( message.playerID === authUser.uid ? "You" : "Opponent") + ": </span> <span class='message-text'>" + text + "<span>" ))
+					// $(".game.chat .card-body").prepend($("<p>").html( message.text  ))
+				})
+
 				GamesRef.child(app.gameID + "/player1Won").on("value", function(snapshot) {
 					// console.log  ("in player1Won listener, value", snapshot.val())
 					if (snapshot.val()) {
@@ -329,6 +337,7 @@ let RPSApp = class RPSApp {
 			if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
 				console.log("Gamed ended/canceled")
 				$(".card.game").hide();
+				$(".card#available-users").show();
 
 			}
 		})
@@ -341,13 +350,13 @@ let RPSApp = class RPSApp {
 		})
 
 
-
 		// Listen for changes in authorized user state
 		firebase.auth().onAuthStateChanged(function(user) {
 			if (user) {
 				console.log("detected change in auth user state. User is signed in.")
 				// User is signed in.
 				$("#user-signin-card, #user-create-card").hide();
+				$(".card#available-users").show();
 				$("#logout-button").text("Logoff " + user.displayName)
 
 				app.authUser = user;
@@ -491,11 +500,27 @@ let RPSApp = class RPSApp {
 
 	}
 
+	postMessage(event) {
+		console.log("in app.postMessage")
+		event.preventDefault();
+
+		let message = $("#new-message-text").val().trim();
+		if (message.length > 0 ) {
+			$("#new-message-text").val("");
+			GamesRef.child(app.gameID + "/chat").push({
+				playerID: firebase.auth().currentUser.uid,
+				text: message
+			})
+
+		}
+
+	}
+
 	createAppEventListeners() {
 		$(document).on("click", ".user-available .btn", app.tryToStartGame);
 		$(document).on("click", ".game .btn#end-game", app.endCurrentGame);
 		$(document).on("click", ".game .btn.game-action", app.gameAction);
-
+		$(document).on("click", "#new-message-send", app.postMessage);
 
 		$("#add-user").on("click", function() {
 			// Don't refresh the page!
