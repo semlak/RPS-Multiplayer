@@ -110,21 +110,43 @@
 							</form>
 						</div>
 					</div>
-					<br>
+					<br/>
 					<div class="card border-success game">
 						<div class="card-header text-white bg-success bg">
-							Your active Game
+							Your Active Game
 						</div>
 						<div class="card-body">
-							<p>Your score: <span id="your-score"></span></p>
-							<p>Opponent Score: <span id="opponent-score"></span></p>
-							<p>Ties: <span id="ties"></span></p>
-							<button class="btn btn-primary game-action" type="submit" value="rock">Rock</button>
-							<button class="btn btn-primary game-action" type="submit" value="paper">Paper</button>
-							<button class="btn btn-primary game-action" type="submit" value="scissors">Scissors</button>
-							<br>
-							<br>
-							<div class="btn btn-danger" id="end-game">End Game</div>
+							<p> Your Opponent: <span id="opponent-display-name"></span>
+							</p>
+							<p>
+								Your score:
+								<span id="your-score">
+								</span>
+							</p>
+							<p>
+								Opponent Score:
+								<span id="opponent-score">
+								</span>
+							</p>
+							<p>
+								Ties:
+								<span id="ties">
+								</span>
+							</p>
+							<button class="btn btn-primary game-action" type="submit" value="rock">
+								Rock
+							</button>
+							<button class="btn btn-primary game-action" type="submit" value="paper">
+								Paper
+							</button>
+							<button class="btn btn-primary game-action" type="submit" value="scissors">
+								Scissors
+							</button>
+							<br/>
+							<br/>
+							<div class="btn btn-danger" id="end-game">
+								End Game
+							</div>
 						</div>
 					</div>
 					<div class="card border-success game chat">
@@ -136,18 +158,19 @@
 						<div  class="card-footer">
 							<form>
 								<div class="form-group">
-								    <textarea class="form-control"  id="new-message-text" value="" placeholder="Enter a message to send to the other player!" rows="2"></textarea>
+									<textarea class="form-control"  id="new-message-text" value="" placeholder="Enter a message to send to the other player!" rows="2">
+									</textarea>
 								</div>
-								<button class="btn btn-primary chat-action" type="submit" id="new-message-send">Send Message</button>
+								<button class="btn btn-primary chat-action" type="submit" id="new-message-send">
+									Send Message
+								</button>
 							</form>
 						</div>
-
 					</div>
-
-					<br>
+					<br/>
 					<div class="card border-info " id="available-users">
 						<div class="card-header  text-white bg-info">
-							Other Users
+							Other Available Users
 						</div>
 						<div class="card-body">
 							<table class="table" id="current-users">
@@ -170,25 +193,106 @@
 											Welcome to My Awesome App
 										</h1> -->
 					<br/>
-<!-- 					<div class="card border-info" id="firebaseui-auth-container">
-						<div class=card-body>
-							<div>
-								Sign-in status:
-								<span id="sign-in-status">
-								</span>
-							</div>
-							<div>
-								ID:
-								<span id="sign-in">
-								</span>
-							</div>
-							<div id="account-details">
-							</div>
-						</div>
-					</div>
- -->				</div>
+					<!-- 					<div class="card border-info" id="firebaseui-auth-container">
+											<div class=card-body>
+												<div>
+													Sign-in status:
+													<span id="sign-in-status">
+													</span>
+												</div>
+												<div>
+													ID:
+													<span id="sign-in">
+													</span>
+												</div>
+												<div id="account-details">
+												</div>
+											</div>
+										</div>
+					 -->
+				</div>
 			</div>
 		</div>
+		<!-- ********* modals -->
+
+		<!-- modal for game help -->
+		<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="helpModalLabel">
+							App Help
+						</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">
+								&times;
+							</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<ul class="list-group">
+							<li class="list-group-item">
+								This is a Multi-player
+								<a href="https://en.wikipedia.org/wiki/Rock%E2%80%93paper%E2%80%93scissors">
+									Rock-Paper-Scissors
+								</a>
+								game that lets users play against each other over the internet, in a web browser, written primarily in JavaScript.
+							</li>
+							<li class="list-group-item">
+								To Play:
+								<ol class="list-group ordered">
+									<li class="list-group-item">
+										Login or Sign Up (click Login at top-right of screen). Authentication is handled with Firebase, so you will need a valid email address and a password of at least 6 characters.
+									</li>
+									<li class="list-group-item">
+										After logging in, if you were in the middle of an active came, it should reload. If not, click on one of the available users (in box "Other Available Users") to start a new game.
+									</li>
+									<li class="list-group-item">
+										For each play, select Rock, Paper, or Scissors. The game should then wait until your opponent makes a play, the app determines who wins that round, and the score is updated.
+									</li>
+									<li class="list-group-item">
+										After enough games are won or lost (best 3 out of 5, by default), the players are notified and the game is over. You can play again.
+									</li>
+								</ol>
+							</li>
+						</ul>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary square" data-dismiss="modal">
+							Okay!
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- Modal for game over, possible other messages -->
+		<div class="modal fade" id="game-over-modal" tabindex="-1" role="dialog" aria-labelledby="game-over-label" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="game-over-title">You Over</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<!-- Text to be filled in here. For example: -->
+						You Win!
+					</form>
+
+
+					</div>
+					<div class="modal-footer">
+						<button type ="button" id="new-game-from-modal" class="btn btn-primary square">New Came</button>
+						<button type="button" class="btn btn-danger square" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
 		<!-- End of site content -->
 		<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f" crossorigin="anonymous"></script>
