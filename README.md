@@ -18,10 +18,10 @@ This is a small webapp/game I programmed as a homework assignment for a educatio
 
 
 #### Options during game play:
-1. You select Rock, Paper, or Scissors, and wait for your opponent to do the same. The application determines the winner of that round, and updates the scores accordingly. You play a best out of 5 non-drawa games (ties are recorded, but don't count towards the 5-game total).
+1. You select Rock, Paper, or Scissors, and wait for your opponent to do the same. The application determines the winner of that round, and updates the scores accordingly. You play best out of 5 non-draw games (ties are recorded, but don't count towards the 5-game total).
 2. You can end the game any time by pressing the button under the Rock-Paper-Scissors buttons that says "End Game"
 3. You can send a chat messagae to your opponent any time during the game or after the game (assuming neither of you start a new game or hit "End Game")
-4. Game records are cleared almost immediately after the game is over. "Almost" meaning the when the game is over, the game result is still displayed  along with any chat message, but once either use selects to start a new game, it is removed.
+4. Game records are cleared almost immediately after the game is over. "Almost" meaning that when the game is over, the game result is still displayed  along with any chat messages, but once either user selects to start a new game, it is removed.
 5. Logging out and back in or refreshing the page should not cause the game to end--the game should resume where it left off.
 
 
