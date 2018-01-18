@@ -39,10 +39,15 @@ body {
 }
 
 .card.user-authentication  {
-  display: none;
+  /*display: none;*/
 }
 
 .card.game {
+  display: none;
+}
+
+
+.card#available-users {
   display: none;
 }
 

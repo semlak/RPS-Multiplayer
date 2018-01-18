@@ -1,39 +1,6 @@
 "use strict";
 
 
-
-function shuffleArray(arr) {
-	// returns a shuffled version of the array. Does not alter the input array
-	// Tries to implement the Knuth Shuffle.
-	function randomUpToN(n) {
-		// does not return n, but numbers between 0 and n-1
-		return (Math.floor(Math.random() * n));
-	}
-
-	function swapArrayElements(arr, i, j) {
-		// swaps  the elements i and j or arr. Does  not return anything. It alters input array.
-		if (i !== j) {
-			let t = arr[i];
-			arr[i] = arr[j];
-			arr[j] = t;
-		}
-	}
-
-	// clone the array
-	var outputArr = arr.slice(0);
-	let n = arr.length;
-	for (let i = 0; i < n - 1; i++) {
-		let j = randomUpToN(n - i);
-		// swap element i with the element at (i+j). max i+j value is i + (n-i) - 1 = n - 1
-
-		swapArrayElements(outputArr, i, i + j)
-		// console.log(outputArr)
-	}
-	return outputArr;
-}
-
-
-
 // Initialize Firebase
 var config = {
 	apiKey: "AIzaSyBkyF3iDkn4oj30QNEJ8vsnIF57PY0xki0",
@@ -48,9 +15,6 @@ firebase.initializeApp(config);
 var database = firebase.database();
 var UsersRef = database.ref("Users");
 var GamesRef = database.ref("Games")
-
-
-
 
 
 var app = null;
@@ -99,15 +63,8 @@ let checkWin = function(play1, play2) {
 
 let RPSGame = class RPSGame {
 	constructor(player1, player2, maxNumberOfGames) {
-		// this.player1 = player1;
-		// this.player2 = player2;
-		// this.player1Wins = 0;
-		// this.player1Losses = 0;
-		// this.player2Wins = 0;
-		// this.player2Losses = 0;
-		// this.ties = 0;
+		let self = this;
 		this.gameID = null;
-
 
 		// Will game be best 2 out of 3, 3 out of 5, ..., the maxNumberOfGames would be 3 or 5 in those cases. This value should always be odd.
 		if (!maxNumberOfGames || maxNumberOfGames % 2 === 0) {
@@ -117,17 +74,11 @@ let RPSGame = class RPSGame {
 		else {
 			this.maxNumberOfGames = maxNumberOfGames;
 		}
-		// this.player1LastPlay = undefined;
-		// this.player1CurrentPlay = undefined;
-		// this.player2LastPlay = undefined;
-		// this.player2CurrentPlay = undefined;
-		// console.log("player1: ", player1, "player2", player2)
 		UsersRef.once('value', function(snapshot) {
-			// console.log("snapshot", snapshot, snapshot.val());
 			let users = snapshot.val();
 			let player1Name = users[player1].displayName;
 			let player2Name = users[player2].displayName;
-			GamesRef.push({
+			self.gameID = GamesRef.push({
 				player1: player1,
 				player2: player2,
 				player1Wins: 0,
@@ -151,59 +102,27 @@ let RPSGame = class RPSGame {
 let RPSApp = class RPSApp {
 	constructor() {
 		app = this;
-		this.usersKnownByClient = new Map();
+		firebase.auth().onAuthStateChanged(app.authChangeCallback);
+
+		// this.usersKnownByClient = new Map();
 		this.authUser = firebase.auth().currentUser;
 		// console.log("auth user on App creation: ", this.authUser)
 		// if (this.authUser != null) {
-		this.createFirebaseListeners();
+		// this.createFirebaseListeners();
 		this.lastOpponentAction = null;
 
-		// }
 		this.createAppEventListeners();
 		this.gathering = new Gathering(database, 'OnlineUsers')
 		this.opponentActionListener = null;
-		this.gathering.onUpdated((count, users) => {
-			$("#user-table-body").empty();
-			// console.log("gathering count", count, "users", users);
-			for (let uid in users) {
-				// console.log("user is ", uid, users[uid])
-				if (uid !== this.authUser.uid) {
-					$("#user-table-body").append(
-						$("<tr>").html("<td class='btn btn-primary' data-uid='" + uid + "'>" + users[uid] + "</td>"
-							// + "<td>" + (user.online ? "Online" : "Offline") + "</td>"
-							// + "<td>" + (user.gameInProgress ? "In Game" : "Not in Game") + "</td>"
-							// employee.role + "</td><td>" +
-							// employee.startDate + "</td><td>" +
-							// monthsWorked + "</td><td>"
-						)
-						// .addClass(user.online ? "user-online" : "").addClass(user.gameInProgress ? "user-in-game" : "user-available")
-						.addClass("user-online user-available")
-						// .attr("data-uid", uid)
-					)
-				}
-			}
-		})
+
+		// Listen for changes in authorized user state
+
 
 		// this.game = new RPSGame("joe", "Xena", 5);
 	}
 	onUserAuth(user) {
-		console.log("in onUserAuth", user, user.displayName)
-		// database.ref("Users\/user.displayName").set({
-		// 	online: true,
-
-		// });
-		let userInfo = {
-			displayName: user.displayName,
-			uid: user.uid,
-			online: true,
-			gameInProgress: false
-		}
 		let key = user.uid;
-		console.log("adding userInfo", userInfo);
-		UsersRef.child(key).set({
-			displayName: user.displayName,
-			uid: user.uid,
-			online: true,
+		UsersRef.child(key).update({
 			gameInProgress: false
 		})
 
@@ -228,11 +147,11 @@ let RPSApp = class RPSApp {
 	}
 
 	tryToStartGame(event) {
-		// console.log("tryig to start game");
+		console.log("tryig to start game");
 		let element = $(this);
-		// console.log("element: ", element);
+		console.log("element: ", element);
 		let playeruid = element.data("uid");
-		// console.log("playeruid:", playeruid);
+		console.log("playeruid:", playeruid);
 		let useruid = firebase.auth().currentUser.uid;
 		// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
 
@@ -241,131 +160,27 @@ let RPSApp = class RPSApp {
 		}
 	}
 
+	removeFirebaseListeners() {
+		UsersRef.off("child_added");
+		GamesRef.off("child_removed");
+		GamesRef.off("child_changed");
+	}
+
 	createFirebaseListeners() {
-		// console.log("app: ", app);
-		// console.log("app.game", app.game);
 		let authUser = app.authUser;
-		let usersKnownByClient = app.usersKnownByClient;
+		// let usersKnownByClient = app.usersKnownByClient;
 
 		authUser = firebase.auth().currentUser;
-		if (authUser != null) {
-			usersKnownByClient.set(authUser.uid, authUser.displayName);
-			// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+		// if (authUser != null) {
+		// 	// usersKnownByClient.set(authUser.uid, authUser.displayName);
+		// 	// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
 
 
-		}
-		UsersRef.on("child_added", function(snapshot) {
-			authUser = firebase.auth().currentUser;
-			if (authUser != null) {
-				// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
-			}
-
-			let user = snapshot.val()
-			// console.log("Users child_added", user, "authUser", authUser.uid)
-			usersKnownByClient.set(user.uid, user.displayName);
-			// return;
-			// let monthsWorked = Math.abs(moment(employee.startDate).diff(moment(), "months"))
-			// if (authUser != null && !usersKnownByClient.has(user.uid) && user.uid !== authUser.uid) {
-			if (authUser != null && user.uid !== authUser.uid) {
-				// if (true) {
-				$("#user-table-body").append(
-					$("<tr>").html("<td class='btn btn-primary' data-uid='" + user.uid + "'>" + user.displayName + "</td>" +
-						"<td>" + (user.online ? "Online" : "Offline") + "</td>" +
-						"<td>" + (user.gameInProgress ? "In Game" : "Not in Game") + "</td>"
-						// employee.role + "</td><td>" +
-						// employee.startDate + "</td><td>" +
-						// monthsWorked + "</td><td>"
-					).addClass(user.online ? "user-online" : "").addClass(user.gameInProgress ? "user-in-game" : "user-available")
-					.attr("data-uid", user.uid)
-				)
-
-			}
-		})
-
-		GamesRef.on("child_added", function(snapshot) {
-			authUser = app.authUser;
-			let game = snapshot.val();
-			// console.log("game child_added", game, "snapshot", snapshot);
-			// app.updateGame(game);
-			// debugger
-			// app.game.gameID = game.id
-			if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
-				// game.id = snapshot.id;
-				// if (typeof game.id !== "string") {
-				// console.log("trying to update game id for ", snapshot.key)
-				// GamesRef.child(snapshot.key).update({
-				// 	id: snapshot.key
-				// }).then(game => {
-				// 	$(".card.game").show();
-				// 	app.updateGame(game)
-				// }
-				app.setGameID(snapshot.key);
-				GamesRef.child(app.gameID + "/chat").on("child_added", function(snapshot) {
-					let message = snapshot.val();
-					let text = message.text;
-					let opponentName = game.player1 !== authUser.uid ? game.player1Name : game.player2Name;
-					// console.log("message.text: ", text);
-					$(".game.chat .card-body").prepend($("<div>").html("<span class='playerid " + (message.playerID === authUser.uid ? "player" : "opponent") + "'>" + (message.playerID === authUser.uid ? "Me" : opponentName) + ": </span> <span class='message-text'>" + text + "<span>"))
-					// $(".game.chat .card-body").prepend($("<p>").html( message.text  ))
-				})
-
-				GamesRef.child(app.gameID + "/gameInProgress").on("value", function(snapshot) {
-					console.log("/gameInProgress listener triggered, snapshot", snapshot.val())
-					if (!snapshot.val()) {
-						// game is over. Player possibly ended game, but possible due to player could have won/lost. check
-						GamesRef.child(app.gameID).once("value", function(snapshot) {
-							let game = snapshot.val();
-							console.log("game snapshot is ", game)
-							if (game != null && (game.player1Won || game.player2Won)) {
-								let thisPlayerWon = (game.player1Won && authUser.uid === game.player1) || (game.player2Won && authUser.uid === game.player2);
-								$("#game-over-modal .modal-body").text(thisPlayerWon ? "You Won the Entire Match!!!" : "Sorry. You lose match :*(")
-								$("#game-over-modal").modal("show");
-							}
-						})
-					}
-				})
-				// GamesRef.child(app.gameID + "/player1Won").on("value", function(snapshot) {
-				// 	// console.log  ("in player1Won listener, value", snapshot.val())
-				// 	if (snapshot.val()) {
-				// 		$("#game-over-modal .modal-body").text("You Won the Entire Match!!!")
-				// 		$("#game-over-modal").modal("show");
-				// 		console.log("\n\n\n\n****** Player1 won entire match ******")
-				// 		// console.log("player1 Won entire match!!")
-
-				// 	}
-				// })
-				// GamesRef.child(app.gameID + "/player2Won").on("value", function(snapshot) {
-				// 	// console.log  ("in player2Won listener, value", snapshot.val())
-				// 	if (snapshot.val()) {
-				// 		$("#game-over-modal .modal-body").text("Sorry. You lose match :*(")
-
-				// 		$("#game-over-modal").modal("show");
-
-				// 		console.log("\n\n\n\n****** Player2 won entire match ******")
-				// 		// console.log("player2 Won entire match!!")
-				// 	}
-				// })
-
-
-				UsersRef.child(authUser.uid + "/games").push({
-					gameid: snapshot.key
-				})
-				// UsersRef.child(game.player2 + "/games").push({
-				// 	gameid: snapshot.key
-				// })
-				// app.updateGame(game)
-				// }
-				// else {
-				// $(".card.game").show();
-				app.updateGame(game);
-				// }
-				// this newly added game is a game for our player! Show the player the game interface.
-				// app.currentGameID = game.
-			}
-		});
+		// }
+		GamesRef.on("child_added", app.GamesRefChildAddedCallback)
 
 		GamesRef.on("child_removed", function(snapshot) {
-			authUser = app.authUser;
+			let authUser = app.authUser;
 			let game = snapshot.val();
 			// console.log("game child_removed", game, "snapshot", snapshot);
 			if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
@@ -376,66 +191,111 @@ let RPSApp = class RPSApp {
 			}
 		})
 
-		GamesRef.on("child_changed", function(snapshot) {
-			authUser = app.authUser;
-			let game = snapshot.val();
-			// console.log("game child_changed", game, "snapshot", snapshot);
-			app.updateGame(game);
+		app.gathering.onUpdated((count, users) => {
+			$("#available-users .card-body").empty();
+			// console.log("gathering count", count, "users", users);
+			for (let uid in users) {
+				// console.log("user is ", uid, users[uid])
+				if (uid !== this.authUser.uid) {
+					$("#available-users .card-body").append(
+						$("<div>").addClass("btn btn-primary user-online user-available").data("uid", uid).text(users[uid])
+					)
+				}
+			}
 		})
 
+	}
 
-		// Listen for changes in authorized user state
-		firebase.auth().onAuthStateChanged(function(user) {
-			if (user) {
-				console.log("detected change in auth user state. User is signed in.")
-				// User is signed in.
-				$("#user-signin-card, #user-create-card").hide();
-				$(".card#available-users").show();
-				$("#logout-button").text("Logoff " + user.displayName)
+	GamesRefChildAddedCallback(snapshot) {
+		console.log("running GamesRefChildAddedCallback")
+		let authUser = app.authUser;
+		let game = snapshot.val();
+		if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
+			console.log("enabling buttons after detecting new game");
+			$(".btn.game-action").prop("disabled", false);
 
-				app.authUser = user;
-				let gathering = app.gathering;
-				// gathering.
-				app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+			app.setGameID(snapshot.key);
+			GamesRef.child(app.gameID).on("value", function(snapshot) {
+				// let authUser = app.authUser;
+				let game = snapshot.val();
+				if (game != null) {
+					// console.log("game child_changed", game, "snapshot", snapshot);
+					app.updateGame(game);
+				}
+				else {
+					GamesRef.child(app.gameID).off("value");
+				}
+			})
 
+			console.log("adding chat listener")
+			GamesRef.child(app.gameID + "/chat").on("child_added", function(snapshot) {
+				console.log("chat child_added event triggerred", snapshot, snapshot.val())
+				let message = snapshot.val();
+				let text = message.text;
+				let opponentName = game.player1 !== authUser.uid ? game.player1Name : game.player2Name;
+				$(".game.chat .card-body").prepend($("<div>").html("<span class='playerid " + (message.playerID === authUser.uid ? "player" : "opponent") + "'>" + (message.playerID === authUser.uid ? "Me" : opponentName) + ": </span> <span class='message-text'>" + text + "<span>"))
+			})
 
-			}
-			else {
-				console.log("detected change in auth user state. User is signed out.")
+			console.log("adding gameInProgress listener")
 
-				$("#logout-button").text("Login");
-				// $(".card#user-signin, .card#user-create").show();
-				app.authUser = null;
+			GamesRef.child(app.gameID + "/gameInProgress").on("value", function(snapshot) {
+				console.log("/gameInProgress listener triggered, snapshot", snapshot.val())
+				if (!snapshot.val()) {
+					// game is over. Player possibly ended game, but possible due to player could have won/lost. check
+					GamesRef.child(app.gameID).once("value", function(snapshot) {
+						let game = snapshot.val();
+						console.log("game snapshot is ", game)
+						if (game != null && (game.player1Won || game.player2Won)) {
+							let thisPlayerWon = (game.player1Won && authUser.uid === game.player1) || (game.player2Won && authUser.uid === game.player2);
+							$("#game-over-modal .modal-body").text(thisPlayerWon ? "You Won the Entire Match!!!" : "Sorry. You lose match :*(")
+							$("#game-over-modal").modal("show");
+							$(".btn.game-action").prop("disabled", true);
+						}
+					})
+				}
+			})
 
-				// No user is signed in.
-			}
-		});
-		// firebase.auth().user().onCreate(function(event) {
-		// 	console.log("user created", event)
-		// })
+			UsersRef.child(authUser.uid + "/games").push({
+				gameid: snapshot.key
+			})
 
-
-
-		// database.ref().on("value", function(snapshot) {
-		// 	console.log("received change for value", snapshot.val())
-		// 	// If Firebase has a highPrice and highBidder stored (first case)
-		// 	if (snapshot.child("highBidder").exists() && snapshot.child("highPrice").exists()) {
-
-		// 		// Set the variables for highBidder/highPrice equal to the stored values in firebase.
-		// 		highPrice = snapshot.val().highPrice;
-		// 		highBidder = snapshot.val().highBidder;
-
-		// 		// highBidder = ...
-
-
-		// 		// Change the HTML to reflect the stored values
-		// 		// $("#highest-price").text(highPrice);
-		// 		// $('#highest-bidder').text(highBidder);
-
-		// 	}
-		// })
+			app.updateGame(game);
+		}
 
 	}
+
+	authChangeCallback(user) {
+		if (user) {
+			console.log("detected change in auth user state. User is signed in.")
+			// User is signed in.
+			// $("#user-signin-card, #user-create-card").hide();
+			$(".card#user-signin, .card#user-create").hide();
+			$(".card#available-users").show();
+			$("#logout-button").text("Logoff " + user.displayName)
+
+			app.authUser = user;
+			app.createFirebaseListeners();
+
+			let gathering = app.gathering;
+			// Join gathering. This is not for a specific game, but just to keep track of users who are online.
+			app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+
+		}
+		else {
+			console.log("detected change in auth user state. User is signed out.")
+
+			$("#logout-button").text("Login");
+			$(".card#available-users").show();
+			$(".card.game").hide();
+			$(".card#available-users").hide();
+
+			// $(".card#user-signin, .card#user-create").show();
+			app.authUser = null;
+
+			// No user is signed in.
+		}
+	}
+
 	getUsers() {
 		database.ref().on("Users", function(snapshot) {
 			console.log("snap", snapshot);
@@ -443,36 +303,42 @@ let RPSApp = class RPSApp {
 			console.log("users", users);
 		})
 	}
-	endCurrentGame() {
+	endCurrentGame(callback) {
 		console.log("end current game")
-		GamesRef.child(app.gameID).remove();
+		GamesRef.child(app.gameID).once("value", function(snapshot) {
+			let game = snapshot.val();
+			GamesRef.child(app.gameID).remove();
+			if (typeof callback === "function") callback(snapshot.val())
+		})
+
 		// this should result in the app listener realizing there  is no longer a game, and reload the option to select an opponent for a new game
 	}
 
 	gameAction(event) {
+		// this is callback for after use selects rock, paper, or scissors
 		event.preventDefault();
-		let gameAction = $(this).val();
-		console.log("gameAction", gameAction);
 		let playerid = firebase.auth().currentUser.uid;
-		// UsersRef.get(player);
-
+		let playerAction = $(this).val();
+		// playerAction is string "rock", "paper", or "scissors"
+		// now send to firebase.
 		GamesRef.child(app.gameID).once('value', function(snapshot) {
-			console.log("gameAction snapshot", snapshot)
+			// console.log("playerAction snapshot", snapshot, "val", snapshot.val())
 			let game = snapshot.val();
 			$(".btn.game-action").prop("disabled", true);
 			let player = playerid === game.player1 ? "player1" : "player2";
 			let opponent = playerid !== game.player1 ? "player1" : "player2";
-			// GamesRef.child(app.gameID + "/" + player + "Actions").set({action: gameAction}).then(_ => {
+			// GamesRef.child(app.gameID + "/" + player + "Actions").set({action: playerAction}).then(_ => {
 			GamesRef.child(app.gameID).update({
-				[player + "Actions"]: gameAction
+				[player + "Actions"]: playerAction
 			}).then(_ => {
-				console.log("action is pushed")
+				// console.log("action is pushed")
 				app.opponentActionListener = GamesRef.child(app.gameID + "/" + opponent + "Actions").on("value", function(snapshot) {
 					// when receive update,
 					// if (snapshot.key !== app.lastOpponentAction) {
 					let opponentAction = snapshot.val();
 					if (typeof opponentAction === "string" && opponentAction.match(/(rock|paper|scissors)/)) {
 						// app.lastOpponentAction = snapshot.key;
+						console.log("enabling buttons after detecting opponent action");
 						$(".btn.game-action").prop("disabled", false);
 
 						GamesRef.child(app.gameID + "/" + opponent + "Actions").off();
@@ -482,7 +348,7 @@ let RPSApp = class RPSApp {
 						})
 						console.log("snapshot.key", snapshot.key)
 						console.log("opponentAction", opponentAction)
-						let outcome = checkWin(getPlay(gameAction), getPlay(opponentAction))
+						let outcome = checkWin(getPlay(playerAction), getPlay(opponentAction))
 						console.log(outcome)
 						if (outcome === 0) {
 							console.log("Game tied!")
@@ -513,7 +379,7 @@ let RPSApp = class RPSApp {
 									[player + "Won"]: playerWon
 
 								})
-								console.log("playerWon" , playerWon)
+								console.log("playerWon", playerWon)
 								if (playerWon) {
 									GamesRef.child(app.gameID).update({
 										gameInProgress: false
@@ -556,11 +422,12 @@ let RPSApp = class RPSApp {
 			})
 
 		}
+		$("#new-message-text").val("");
 
 	}
 
 	createAppEventListeners() {
-		$(document).on("click", ".user-available .btn", app.tryToStartGame);
+		$(document).on("click", ".user-available", app.tryToStartGame);
 		$(document).on("click", ".game .btn#end-game", app.endCurrentGame);
 		$(document).on("click", ".game .btn.game-action", app.gameAction);
 		$(document).on("click", "#new-message-send", app.postMessage);
@@ -569,7 +436,16 @@ let RPSApp = class RPSApp {
 			console.log("starting new game");
 
 			$("#game-over-modal").modal("hide");
-			app.endCurrentGame();
+			// create callback to create new game using same info initial info as ending game
+			let callback = function(game) {
+				let newGame = new RPSGame(game.player1, game.player2, game.maxNumberOfGames)
+				return newGame;
+			}
+			console.log("enabling buttons just before ending current game");
+
+			$(".btn.game-action").prop("disabled", false);
+
+			app.endCurrentGame(callback);
 		})
 
 		// $("button#new-game-from-modal").on("click", function(e) {
@@ -598,6 +474,7 @@ let RPSApp = class RPSApp {
 					let user = firebase.auth().currentUser;
 
 					user.updateProfile({
+						uid: user.uid,
 						displayName: displayName
 					}).then(_ => app.onUserAuth(user));
 
@@ -609,7 +486,7 @@ let RPSApp = class RPSApp {
 					// ...
 				});
 
-				app.createFirebaseListeners();
+				// app.createFirebaseListeners();
 
 			}
 			else {
@@ -632,7 +509,7 @@ let RPSApp = class RPSApp {
 				firebase.auth().signInWithEmailAndPassword(email, password).then(function(data) {
 					console.log("user logged in", data);
 					// app.createFirebaseListeners();
-					app.onUserAuth(data);
+					// app.onUserAuth(data);
 				}).catch(function(error) {
 					// Handle Errors here.
 					var errorCode = error.code;
@@ -640,7 +517,7 @@ let RPSApp = class RPSApp {
 
 
 				});
-				app.createFirebaseListeners()
+				// app.createFirebaseListeners()
 
 			}
 
@@ -655,6 +532,7 @@ let RPSApp = class RPSApp {
 				}
 
 				firebase.auth().signOut().then(function() {
+					app.removeFirebaseListeners()
 					// Sign-out successful.
 					console.log("Sign-out successful")
 				}).catch(function(error) {
