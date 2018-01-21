@@ -233,7 +233,7 @@ let RPSApp = class RPSApp {
 				let message = snapshot.val();
 				let text = message.text;
 				let opponentName = game.player1 !== authUser.uid ? game.player1Name : game.player2Name;
-				$(".game.chat .card-body").prepend($("<div>").html("<span class='playerid " + (message.playerID === authUser.uid ? "player" : "opponent") + "'>" + (message.playerID === authUser.uid ? "Me" : opponentName) + ": </span> <span class='message-text'>" + text + "<span>"))
+				$(".game.chat .card-footer").prepend($("<div>").html("<span class='playerid " + (message.playerID === authUser.uid ? "player" : "opponent") + "'>" + (message.playerID === authUser.uid ? "Me" : opponentName) + ": </span> <span class='message-text'>" + text + "<span>"))
 			})
 
 			console.log("adding gameInProgress listener")
@@ -525,6 +525,7 @@ let RPSApp = class RPSApp {
 
 
 		$("#logout-button").on("click", function(event) {
+				console.log("logging off")
 			if ($(this).text().match("Logoff")) {
 				console.log("logging off")
 				if (app.gathering) {

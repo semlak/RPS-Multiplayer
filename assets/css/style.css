@@ -81,6 +81,7 @@ input.is-invalid {
 }
 
 
+
 #new-topic::-moz-placeholder { /* Firefox 19+ */
   color: #aaa;
 }
@@ -212,4 +213,9 @@ input.is-invalid {
 
 .ordered .list-group-item {
     display: list-item;
+}
+
+
+#helpModal {
+  width: 50%;
 }
