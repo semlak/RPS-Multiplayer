@@ -4,18 +4,16 @@ body {
 	font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 	font-size: 18px;
 	line-height: 34px;
-	color: #777;
-	/*background-image: "./assets/images/order-of-phoenix.jpg";*/
-	/*background-image: url("../images/order-of-phoenix.jpg");*/
+	color: #000;
 	background-attachment: fixed;
-  /*background: #000;*/
+	background: #000;
 	/*background: #fff;*/
 }
 
 
 .container.wrapper {
 	/* this top padding is used to offset the navbar's absolute positioning.  For smaller viewport, media query is used to remove top-padding and change navbar positioning to static */
-	padding-top: 120px;
+	padding-top: 90px;
 	padding-bottom: 40px;
 	margin-bottom: 40px;
 }
@@ -24,39 +22,32 @@ body {
 	border-radius: 0!important;
 }
 
-.btn-load-images {
-	margin-right: 1em	;
-	/*margin-bottom: 1em;*/
-	margin-top: 1em;
-}
-
-.topic-search-button {
-	margin-top: 1em;
-}
-
-#search-box-x.disabled {
-	color: #ccc
-}
 
 .card.user-authentication  {
   /*display: none;*/
 }
 
+.jumbotron {
+	display: none;
+}
+
 .card.game {
-  display: none;
+ 	display: none;
 }
 
 
 .card#available-users {
-  display: none;
+ 	display: none;
 }
 
-/* the border for the topic search form input is difficult to see, so when invalid, increase border width */
-input.is-invalid {
-
-	border-width: 4px;
+.card#available-users .btn {
+	margin-left: 1em;
 }
 
+
+#registration-feedback-div {
+	display: none;
+}
 
 .game.chat .playerid.player {
   color : blue;
@@ -66,132 +57,22 @@ input.is-invalid {
   color: red;
 }
 
-/* position an "x" button at end of search-box-input to let user clear the input */
-#search-box-x {
-	position: absolute;
-	right: 30px;
-	top: 95px;
+.card {
+	margin-bottom : 2em;
 }
 
-/* The place holder text for a form-input for my bootstrap theme is not dim. Adjust*/
-#new-topic::placeholder, #new-topic::placeholder,
-#new-topic::-webkit-input-placeholder
-{
-	color: #aaa;
-}
+.card#available-users .card-body {
+	min-height: 10em;
+ }
 
 
-
-#new-topic::-moz-placeholder { /* Firefox 19+ */
-  color: #aaa;
-}
-
-#new-topic:-ms-input-placeholder { /* IE 10+ */
-  color: #aaa;
-}
-
-#new-topic:-moz-placeholder { /* Firefox 18- */
-  color: #aaa;
-}
-
-
-
-/* .images-container will be inside a tab pane and contain all of the image cards for that topic*/
-/* .images-container will typically fill up most of the page */
-
-#images-tab-bar {
-	margin-top: .5em;
-}
-
-.images-container {
-	width: 100%;
-	box-sizing: border-box;
-	margin-top: 15px;
-	/*margin-left: 15px;*/
-	/*margin-right: 15px;*/
-}
-
-
-
-.images-container .card {
-	/*margin-top: 20px;*/
-	margin-bottom: 20px;
-	border: none;
-	/*flex-shrink: 0;*/
-	/*flex: 0 0 auto;*/
-	page-break-inside: avoid;
-	break-inside: avoid;
-
-}
-
-.images-container img {
-	width: 100%;
-	/*margin: 0;*/
-}
-
-
-
-#images-tab-bar.hidden {
-	display: none;
-}
-
-#images-tab-bar {
-	width: 100%;
-}
-
-#images-tab-bar .close {
-	position: relative;
-	right: -12px;
-	top: 8px;
-}
+/*
 
 
 .tab-content {
 	width: 100%;
 }
-
-
-.images-container {
-	 flex-direction: column;
-	 column-count: 3;
-
-}
-
-
-
-.gif-rating {
-	background-color: #000 ;
-	color: #fff;
-}
-
-.images-container .card-body {
-	padding:0;
-	margin-bottom: 0;
-}
-
-
-.gif-card {
-	position: relative;
-	width: 100%;
-}
-
-
-.gif-card .gif {
-	width: 100%;
-	position:  absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-}
-
-.gif-card .card-body .image-loaded {
-	background: #000!important;
-}
-
-.image-wrapper {
-	position: relative;
-}
+*/
 
 
 
@@ -217,5 +98,43 @@ input.is-invalid {
 
 
 #helpModal {
-  width: 50%;
+  /*width: 50%;*/
+}
+.model-content {
+	/*width: 100%;*/
+}
+
+
+
+
+
+/*Modal Styling*/
+#modal-login-form, #modal-registration-form{
+  padding-bottom:20px;
+}
+
+.nav-tabs {
+    margin-bottom: 15px;
+}
+
+.sign-with {
+    margin-top: 25px;
+    padding: 20px;
+}
+
+div#OR {
+    height: 30px;
+    width: 30px;
+    border: 1px solid #C2C2C2;
+    border-radius: 50%;
+    font-weight: bold;
+    line-height: 28px;
+    text-align: center;
+    font-size: 12px;
+    float: right;
+    position: absolute;
+    right: -16px;
+    top: 40%;
+    z-index: 1;
+    background: #DFDFDF;
 }
