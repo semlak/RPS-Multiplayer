@@ -259,6 +259,7 @@ let RPSApp = class RPSApp {
 		// New game is detected. check to see if this player is one of the game's players.
 		if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
 			// user is one of the games's players.
+			$(".btn.game-action").prop("disabled", false);
 			if (app.game == null) {
 				// this should only happen if the player was in middle of game and refreshed page. Recreate essential app.game data
 				app.game = {}; let arr = ["player1", "player1Name", "player2", "player2Name", "maxNumberOfGames"]
