@@ -28,7 +28,7 @@ var Gathering = (function() {
             var presenceRef = this.db.ref(".info/connected");
             var self = this;
             presenceRef.on("value", function(snap) {
-                if (snap.val()) {
+                if (snap.val() && self.user) {
                     self.user.onDisconnect().remove();
                     self.user.set(self.myName);
                 }

@@ -206,7 +206,7 @@ let RPSApp = class RPSApp {
 			for (let uid in users) {
 				// console.log("user is ", uid, users[uid])
 				let user = users[uid]
-				if (uid !== this.authUser.uid) {
+				if (uid !== app.authUser.uid) {
 					$("#available-users .card-body").append(
 						$("<div>").addClass("btn btn-primary user-online").data("uid", uid).text(user.displayName)
 						.addClass(user.inGame ? "disabled" : "user-available")
@@ -316,8 +316,8 @@ let RPSApp = class RPSApp {
 
 				app.authUser = authUser;
 				app.createFirebaseListeners();
-				if (this.gathering == null) {
-					this.gathering = new Gathering(database, 'OnlineUsers')
+				if (app.gathering == null) {
+					app.gathering = new Gathering(database, 'OnlineUsers')
 				}
 				// Join gathering. This is not for a specific game, but just to keep track of users who are online.
 				// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
