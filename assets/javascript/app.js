@@ -141,7 +141,7 @@ let RPSApp = class RPSApp {
 		$(".game #your-score").text(playerScore);
 		$(".game #opponent-score").text(opponentScore);
 		$(".game #ties").text(game.ties);
-		$(".btn.game-action").prop("disabled", false);
+		// $(".btn.game-action").prop("disabled", false);
 
 	}
 
@@ -154,6 +154,7 @@ let RPSApp = class RPSApp {
 		// console.log("playeruid:", playeruid);
 		let useruid = firebase.auth().currentUser.uid;
 		let userDisplayname = firebase.auth().currentUser.displayName
+		$(".btn.game-action").prop("disabled", false);
 		// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
 
 		if (useruid !== playeruid) {
@@ -352,7 +353,7 @@ let RPSApp = class RPSApp {
 		// console.log("end current game")
 		GamesRef.child(app.gameID).remove();
 		$(".btn#end-game").text("End Game")
-
+		$(".btn.game-action").prop("disabled", false);
 
 		//disabled the following, it allowed, for example, to start a new game immediately after end game, but might have been cause of fatal errors.
 		//if (typeof callback === "function") callback(snapshot.val())
