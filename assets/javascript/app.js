@@ -317,9 +317,9 @@ let RPSApp = class RPSApp {
 
 				app.authUser = authUser;
 				app.createFirebaseListeners();
-				if (app.gathering == null) {
+				// if (app.gathering == null) {
 					app.gathering = new Gathering(database, 'OnlineUsers')
-				}
+				// }
 				// Join gathering. This is not for a specific game, but just to keep track of users who are online.
 				// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
 				app.gathering.join(authUser.uid, {displayName: authUser.displayName, inGame: false});
