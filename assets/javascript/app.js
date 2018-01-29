@@ -141,7 +141,7 @@ let RPSApp = class RPSApp {
 		$(".game #your-score").text(playerScore);
 		$(".game #opponent-score").text(opponentScore);
 		$(".game #ties").text(game.ties);
-		// $(".btn.game-action").prop("disabled", false);
+		$(".btn.game-action").prop("disabled", false);
 
 	}
 
