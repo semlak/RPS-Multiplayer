@@ -593,7 +593,7 @@ let RPSApp = class RPSApp {
 			// console.log("logging off")
 			if ($(this).text().match("Logoff")) {
 				// console.log("logging off")
-				if (app.gathering) {
+				if (app.gathering && app.gathering != null) {
 					app.gathering.leave();
 				}
 				firebase.auth().signOut().then(function() {
