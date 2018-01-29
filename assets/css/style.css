@@ -49,6 +49,19 @@ body {
 	display: none;
 }
 
+
+
+
+/* the actual chat messages. Will show once there is a message to display*/
+.game.chat .card-footer {
+	font-family: "Arial Black", Verdana, Courier, Arial, "Helvetica Neue", Helvetica, sans-serif;
+	display: none;
+}
+
+.game.chat .playerid {
+	font-weight: bold
+}
+
 .game.chat .playerid.player {
   color : blue;
 
