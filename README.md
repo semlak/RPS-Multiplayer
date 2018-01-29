@@ -12,9 +12,9 @@ This is a small webapp/game I programmed as a homework assignment for a educatio
 * As far as the game goes, it is a really basic Rock-Paper-Scissors game that you play online against another human player. You need to sign-up with an email and password, and select from any available players to start a new game. It currently plays best out of 5 rounds (only counting non-draw rounds).
 
 #### First time using application
-1. Create a new sign-on ID. I have only implemented the Firebase email/password authentication, so that is the only way to authenticate. You need a valid-looking email address (the actual email address does not need to be real, but it needs to look like one) and a password with 6 or more characters.
+1. Create a new sign-on ID (click the "Login/Sign Up" in top-right of NavBar). I have only implemented the Firebase email/password authentication, so that is the only way to authenticate. You need a valid-looking email address (the actual email address does not need to be real, but it needs to look like one) and a password with 6 or more characters.
 
-2. Upon Logging in, you should be presented with a box containing buttons for other available players. Click on one of them. A game will immediately start (the other player does not currently get prompted whether to start the game, it just starts).
+2. Upon Logging in, you should be presented with a box containing buttons for other available players (although, if you are the only one signed in, it will be empty). Click on one of other player's buttons. A game will immediately start (the other player does not currently get prompted whether to start the game, it just starts).
 
 
 #### Options during game play:
@@ -35,7 +35,7 @@ git clone git@github.com:semlak/RPS-Multiplayer.git
 cd RPS-Multiplayer
 ```
 
-You need a Firebase database available. I am not able to provide instructions, but the database rules, you should be able to use the default coniguration:
+You need a Firebase database available. I am not able to provide instructions, but the database rules, you should be able to use the default configuration:
 ```
 {
   "rules": {
@@ -46,9 +46,4 @@ You need a Firebase database available. I am not able to provide instructions, b
 ```
 
 
-You then need to update the config object in assets/javascript/app.js for your firebase deployment. You probably then need to run
-```
-firebase use --add
-```
-
-You would need the firebase npm installed to do that (```npm install -g firebase```)
+You then need to update the config object in assets/javascript/app.js for your firebase deployment. With just the email/password authentication, you don't seem to have to do the additional firebase project steps (```firebase use --add```, ...)

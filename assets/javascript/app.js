@@ -13,7 +13,7 @@ var config = {
 firebase.initializeApp(config);
 
 var database = firebase.database();
-var UsersRef = database.ref("Users");
+// var UsersRef = database.ref("Users");
 var GamesRef = database.ref("Games")
 
 
@@ -62,23 +62,31 @@ let checkWin = function(play1, play2) {
 
 
 let RPSGame = class RPSGame {
-	constructor(player1, player2, maxNumberOfGames) {
-		let self = this;
-		this.gameID = null;
+	constructor(player1, player1Name, player2, player2Name, maxNumberOfGames) {
+		let me = this;
+		me.gameID = null;
+		me.player1 = player1;
+		me.player1Name = player1Name;
+		me.player2  = player2;
+		me.player2Name = player2Name;
 
-		// Will game be best 2 out of 3, 3 out of 5, ..., the maxNumberOfGames would be 3 or 5 in those cases. This value should always be odd.
+		// Will game be best 2 out of 3, 3 out of 5, ..., the maxNumberOfGames would be 3 or 5 in those cases.
+		// This value should always be odd.
 		if (!maxNumberOfGames || maxNumberOfGames % 2 === 0) {
 			// I plan to prevent the UI from even allowing to get here, but in case that doesn't work, throw error. I might try to change to handle in better way
-			throw "Max Number of Games must be Odd";
+			// throw "Max Number of Games must be Odd";
+			maxNumberOfGames = 5;
 		}
-		else {
-			this.maxNumberOfGames = maxNumberOfGames;
-		}
-		UsersRef.once('value', function(snapshot) {
-			let users = snapshot.val();
-			let player1Name = users[player1].displayName;
-			let player2Name = users[player2].displayName;
-			self.gameID = GamesRef.push({
+		me.maxNumberOfGames = maxNumberOfGames;
+
+		//this next section was the part where a fatal error was being created, hense the attempt to detect various errors.
+		//This should at least catch error and handle more gracefully than before, by desplaying a modal advising user to refresh.
+
+        	try {
+        		if (typeof player1 !== "string" || typeof player2 !== "string" || typeof player1Name !== "string" || typeof maxNumberOfGames !== "number" ) {
+        			throw "Error detected in initial game data just before trying to push new game to firebase server."
+        		}
+			me.gameID = GamesRef.push({
 				player1: player1,
 				player2: player2,
 				player1Wins: 0,
@@ -89,14 +97,17 @@ let RPSGame = class RPSGame {
 				maxNumberOfGames,
 				gameInProgress: true
 			})
-
-		});
-
+		} catch (error) {
+			// console.log("error while trying to start new game")
+			// console.log(error)
+			$("#feedback-modal .modal-body")
+				.text("Error detected: '" + error + "'.  \nPlease refresh page and try again.");
+			$("#feedback-modal").modal("show");
+		}
 
 	}
 
 }
-
 
 
 let RPSApp = class RPSApp {
@@ -104,38 +115,26 @@ let RPSApp = class RPSApp {
 		app = this;
 		firebase.auth().onAuthStateChanged(app.authChangeCallback);
 
-		// this.usersKnownByClient = new Map();
 		this.authUser = firebase.auth().currentUser;
-		// console.log("auth user on App creation: ", this.authUser)
-		// if (this.authUser != null) {
-		// this.createFirebaseListeners();
-		this.lastOpponentAction = null;
 
 		this.createAppEventListeners();
-		this.gathering = new Gathering(database, 'OnlineUsers')
+		if (this.gathering == null) {
+			this.gathering = new Gathering(database, 'OnlineUsers')
+		}
 		this.opponentActionListener = null;
 
-		// Listen for changes in authorized user state
 
-
-		// this.game = new RPSGame("joe", "Xena", 5);
-	}
-	onUserAuth(user) {
-		let key = user.uid;
-		UsersRef.child(key).update({
-			gameInProgress: false
-		})
 
 	}
 
 	updateGame(game) {
 		// console.log("in updateGame(), game: ", game)
 
-		let user = firebase.auth().currentUser;
-		let opponentName = game.player1 !== user.uid ? game.player1Name : game.player2Name;
-		let opponentuid = game.player1 !== user.uid ? game.player1 : game.player2;
-		let opponentScore = game.player1 !== user.uid ? game.player1Wins : game.player2Wins;
-		let playerScore = game.player1 === user.uid ? game.player1Wins : game.player2Wins;
+		let authUser = firebase.auth().currentUser;
+		let opponentName = game.player1 !== authUser.uid ? game.player1Name : game.player2Name;
+		let opponentuid = game.player1 !== authUser.uid ? game.player1 : game.player2;
+		let opponentScore = game.player1 !== authUser.uid ? game.player1Wins : game.player2Wins;
+		let playerScore = game.player1 === authUser.uid ? game.player1Wins : game.player2Wins;
 		$(".card.game").show();
 		$(".card#available-users").hide();
 		$(".game #opponent-display-name").text(opponentName);
@@ -147,23 +146,31 @@ let RPSApp = class RPSApp {
 	}
 
 	tryToStartGame(event) {
-		console.log("tryig to start game");
+		// console.log("tryig to start game");
 		let element = $(this);
-		console.log("element: ", element);
+		// console.log("element: ", element);
 		let playeruid = element.data("uid");
-		console.log("playeruid:", playeruid);
+		let playerDisplayName = element.text();
+		// console.log("playeruid:", playeruid);
 		let useruid = firebase.auth().currentUser.uid;
+		let userDisplayname = firebase.auth().currentUser.displayName
 		// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
 
 		if (useruid !== playeruid) {
-			app.game = new RPSGame(useruid, playeruid, 5);
+			app.game = new RPSGame(useruid, userDisplayname, playeruid, playerDisplayName, 5);
 		}
 	}
 
 	removeFirebaseListeners() {
-		UsersRef.off("child_added");
+		// UsersRef.off("child_added");
 		GamesRef.off("child_removed");
 		GamesRef.off("child_changed");
+		if (typeof app.gameID === "string" ) {
+			GamesRef.child(app.gameID).off("value");
+			GamesRef.child(app.gameID + "/gameInProgress").off("value");
+			GamesRef.child(app.gameID + "/player1Actions").off("value")
+			GamesRef.child(app.gameID + "/player2Actions").off("value")
+		}
 	}
 
 	createFirebaseListeners() {
@@ -171,50 +178,96 @@ let RPSApp = class RPSApp {
 		// let usersKnownByClient = app.usersKnownByClient;
 
 		authUser = firebase.auth().currentUser;
-		// if (authUser != null) {
-		// 	// usersKnownByClient.set(authUser.uid, authUser.displayName);
-		// 	// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
 
-
-		// }
+		// child_added is when a new game is detected, should also fire on page refresh.
 		GamesRef.on("child_added", app.GamesRefChildAddedCallback)
 
+		// child_removed is when game is deleted. Not quite the same as when one of the players finally wins
+		// (the game entity would continue to exist until one of the players actually hits the end game button)
 		GamesRef.on("child_removed", function(snapshot) {
 			let authUser = app.authUser;
 			let game = snapshot.val();
 			// console.log("game child_removed", game, "snapshot", snapshot);
 			if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
-				console.log("Gamed ended/canceled")
+				// console.log("Gamed ended/canceled")
 				$(".card.game").hide();
+				$(".game.chat .card-footer").empty();
 				$(".card#available-users").show();
-
+				//app.gathering.leave()
+				//app.gathering.join(authUser.uid, {displayName: authUser.displayName, inGame: false});
+				app.gathering.updateStatus(authUser.uid, {displayName: authUser.displayName, inGame: false})
+				$(".card#available-users .card-footer").text("Select a user to play!")
 			}
 		})
 
 		app.gathering.onUpdated((count, users) => {
+			// console.log("Received update for gathering: count", count, "users", users);
 			$("#available-users .card-body").empty();
-			// console.log("gathering count", count, "users", users);
 			for (let uid in users) {
 				// console.log("user is ", uid, users[uid])
+				let user = users[uid]
 				if (uid !== this.authUser.uid) {
 					$("#available-users .card-body").append(
-						$("<div>").addClass("btn btn-primary user-online user-available").data("uid", uid).text(users[uid])
+						$("<div>").addClass("btn btn-primary user-online").data("uid", uid).text(user.displayName)
+						.addClass(user.inGame ? "disabled" : "user-available")
 					)
 				}
 			}
+			$(".card#available-users .card-footer").text("Select a user to play!")
 		})
+	}
 
+	MessageChildAdded(snapshot) {
+		let authUser = app.authUser;
+		let message = snapshot.val();
+		let text = message.text;
+		let opponentName = app.game.player1 !== authUser.uid ? app.game.player1Name : app.game.player2Name;
+		// console.log("message", message);
+		$(".game.chat .card-footer").prepend(
+			$("<div>")
+			.append($("<span>").addClass("playerid " + (message.playerID === authUser.uid ? "player" : "opponent"))
+				.text("[" + (message.playerID === authUser.uid ? "Me" : opponentName) + "]: "))
+			.append($("<span>").addClass("message-text").text(text))
+		).show();
+	}
+
+	GameInProgressChange(snapshot) {
+		// console.log("/gameInProgress listener triggered, snapshot", snapshot.val())
+		if (!snapshot.val()) {
+			// game is over. Player possibly ended game, but possible due to player could have won/lost. check
+			GamesRef.child(app.gameID).once("value", function(snapshot) {
+				let game = snapshot.val();
+				// console.log("game snapshot is ", game)
+				if (game != null && (game.player1Won || game.player2Won)) {
+					let thisPlayerWon = (game.player1Won && app.authUser.uid === game.player1) || (game.player2Won && app.authUser.uid === game.player2);
+					$("#game-over-modal .modal-body").text(thisPlayerWon ? "You Won the Entire Match!!!" : "Sorry. You lose match :*(")
+					$("#game-over-modal").modal("show");
+					$(".btn.game-action").prop("disabled", true);
+					$(".btn#end-game").text("Go Back To Opponent Selection")
+				}
+				GamesRef.child(app.gameID).off("value");
+				GamesRef.child(app.gameID + "/gameInProgress").off("value");
+			})
+		}
 	}
 
 	GamesRefChildAddedCallback(snapshot) {
-		console.log("running GamesRefChildAddedCallback")
+		// console.log("running GamesRefChildAddedCallback")
 		let authUser = app.authUser;
 		let game = snapshot.val();
+		// New game is detected. check to see if this player is one of the game's players.
 		if (game.player1 === authUser.uid || game.player2 === authUser.uid) {
-			console.log("enabling buttons after detecting new game");
-			$(".btn.game-action").prop("disabled", false);
+			// user is one of the games's players.
+			if (app.game == null) {
+				// this should only happen if the player was in middle of game and refreshed page. Recreate essential app.game data
+				app.game = {}; let arr = ["player1", "player1Name", "player2", "player2Name", "maxNumberOfGames"]
+				arr.forEach(key => app.game[key] = game[key])
+			}
+			// update gathering so that User's inGame status is set to true (prevents other players from trying to start game with player)
+			app.gathering.updateStatus(authUser.uid, {displayName: authUser.displayName, inGame: true})
 
-			app.setGameID(snapshot.key);
+			// app.setGameID(snapshot.key);
+			app.gameID = snapshot.key;
 			GamesRef.child(app.gameID).on("value", function(snapshot) {
 				// let authUser = app.authUser;
 				let game = snapshot.val();
@@ -227,102 +280,109 @@ let RPSApp = class RPSApp {
 				}
 			})
 
-			console.log("adding chat listener")
-			GamesRef.child(app.gameID + "/chat").on("child_added", function(snapshot) {
-				console.log("chat child_added event triggerred", snapshot, snapshot.val())
-				let message = snapshot.val();
-				let text = message.text;
-				let opponentName = game.player1 !== authUser.uid ? game.player1Name : game.player2Name;
-				$(".game.chat .card-body").prepend($("<div>").html("<span class='playerid " + (message.playerID === authUser.uid ? "player" : "opponent") + "'>" + (message.playerID === authUser.uid ? "Me" : opponentName) + ": </span> <span class='message-text'>" + text + "<span>"))
-			})
+			GamesRef.child(app.gameID + "/chat").on("child_added", app.MessageChildAdded)
+			GamesRef.child(app.gameID + "/gameInProgress").on("value", app.GameInProgressChange)
 
-			console.log("adding gameInProgress listener")
-
-			GamesRef.child(app.gameID + "/gameInProgress").on("value", function(snapshot) {
-				console.log("/gameInProgress listener triggered, snapshot", snapshot.val())
-				if (!snapshot.val()) {
-					// game is over. Player possibly ended game, but possible due to player could have won/lost. check
-					GamesRef.child(app.gameID).once("value", function(snapshot) {
-						let game = snapshot.val();
-						console.log("game snapshot is ", game)
-						if (game != null && (game.player1Won || game.player2Won)) {
-							let thisPlayerWon = (game.player1Won && authUser.uid === game.player1) || (game.player2Won && authUser.uid === game.player2);
-							$("#game-over-modal .modal-body").text(thisPlayerWon ? "You Won the Entire Match!!!" : "Sorry. You lose match :*(")
-							$("#game-over-modal").modal("show");
-							$(".btn.game-action").prop("disabled", true);
-						}
-					})
-				}
-			})
-
-			UsersRef.child(authUser.uid + "/games").push({
-				gameid: snapshot.key
-			})
-
+			// update the actual rendering of the game on screen
 			app.updateGame(game);
 		}
+		else {
+			// the user for this client is not one of the players of the game. However, wait a bit (with settimeout) to try and avoid issues with incorrectly reading status of user as available or unavailable
+			setTimeout(function() {
+				$(".card#available-users .user-online").each(function(index) {
+					// console.log("index", index)
+					// console.log($(this));
+					if ($(this).data("uid") === game.player1 || $(this).data("uid") === game.player2 ) {
+						$(this).removeClass("user-available").addClass("disabled");
+					}
+				})
+
+			}, 10);
+		}
 
 	}
 
-	authChangeCallback(user) {
-		if (user) {
-			console.log("detected change in auth user state. User is signed in.")
-			// User is signed in.
-			// $("#user-signin-card, #user-create-card").hide();
-			$(".card#user-signin, .card#user-create").hide();
-			$(".card#available-users").show();
-			$("#logout-button").text("Logoff " + user.displayName)
+	authChangeCallback(authUser) {
+		if (authUser) {
+			// console.log("detected change in auth user state. User is signed in.")
+			// console.log("authUser: ", authUser.displayName, authUser)
+			if (typeof authUser.displayName === "string") {
+				// let authUser = firebase.auth().currentUser;
+				// console.log("authUser: ", authUser.displayName, authUser)
+				$(".card#available-users").show();
+				$(".modal").modal("hide");
+				$("#landing-div").hide();
+				$("#logout-button").text("Logoff " + authUser.displayName)
 
-			app.authUser = user;
-			app.createFirebaseListeners();
+				app.authUser = authUser;
+				app.createFirebaseListeners();
+				if (this.gathering == null) {
+					this.gathering = new Gathering(database, 'OnlineUsers')
+				}
+				// Join gathering. This is not for a specific game, but just to keep track of users who are online.
+				// app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+				app.gathering.join(authUser.uid, {displayName: authUser.displayName, inGame: false});
 
-			let gathering = app.gathering;
-			// Join gathering. This is not for a specific game, but just to keep track of users who are online.
-			app.gathering.join(firebase.auth().currentUser.uid, firebase.auth().currentUser.displayName);
+			}
+			else {
+				// This should only run if the logged in user was just created (logged in upon registered)
+				// This is because firebase does not seem to allow setting the username while registering. I set it immeediately
+				// upon successful user registeration, but this listener fires before that happens. Hence, wait a bit
+				// and then manullay run the callback again.
 
+				setTimeout(function() {
+					// console.log("running timout function")
+					app.authChangeCallback(firebase.auth().currentUser)
+				}, 100);
+
+			}
 		}
 		else {
-			console.log("detected change in auth user state. User is signed out.")
-
-			$("#logout-button").text("Login");
-			$(".card#available-users").show();
-			$(".card.game").hide();
-			$(".card#available-users").hide();
-
-			// $(".card#user-signin, .card#user-create").show();
+			// console.log("detected change in auth user state. User is signed out.")
 			app.authUser = null;
 
-			// No user is signed in.
+			$("#logout-button").text("Login/Sign-Up");
+			$(".card.game").hide();
+			$(".card#available-users").hide();
+			$("#landing-div").show();
 		}
 	}
 
-	getUsers() {
-		database.ref().on("Users", function(snapshot) {
-			console.log("snap", snapshot);
-			let users = snapshot.val();
-			console.log("users", users);
-		})
-	}
 	endCurrentGame(callback) {
-		console.log("end current game")
-		GamesRef.child(app.gameID).once("value", function(snapshot) {
-			let game = snapshot.val();
-			GamesRef.child(app.gameID).remove();
-			if (typeof callback === "function") callback(snapshot.val())
-		})
+		// console.log("end current game")
+		GamesRef.child(app.gameID).remove();
+		$(".btn#end-game").text("End Game")
 
-		// this should result in the app listener realizing there  is no longer a game, and reload the option to select an opponent for a new game
+
+		//disabled the following, it allowed, for example, to start a new game immediately after end game, but might have been cause of fatal errors.
+		//if (typeof callback === "function") callback(snapshot.val())
+
+		//Removal of game should result in the app listener (Games child_removed) realizing there  is no longer a game, and reload the option to select an opponent for a new game
 	}
 
 	gameAction(event) {
-		// this is callback for after use selects rock, paper, or scissors
+		/*
+		This is callback for after current user selects rock, paper, or scissors (by clicking one of the buttons)
+		This has a lot of the logic of the game.
+		There are two basic situations:
+			One: the user selects before the opponent selects.
+				In that case, user waits for opponent to select, and then the round is evaluated
+			Two: the opponent had already selected and was waiting for our user to select.
+				The round can be immediately evaluated.
+
+		As far as determining who wins, both player's clients determine if they win or lose.
+		They each update their own win/loss counts in firebase. The tie is only updated once, by whichever is player1
+		If the current player wins the entire match, they update firebase with that info.
+			The loser of the match relies on winner to update database
+			At that point, the value in firebase under the game object "gameInProgress" is updated from true to false,
+				which both players have listeners for that will fire.
+		*/
 		event.preventDefault();
 		let playerid = firebase.auth().currentUser.uid;
 		let playerAction = $(this).val();
 		// playerAction is string "rock", "paper", or "scissors"
 		// now send to firebase.
 		GamesRef.child(app.gameID).once('value', function(snapshot) {
-			// console.log("playerAction snapshot", snapshot, "val", snapshot.val())
 			let game = snapshot.val();
 			$(".btn.game-action").prop("disabled", true);
 			let player = playerid === game.player1 ? "player1" : "player2";
@@ -331,86 +391,72 @@ let RPSApp = class RPSApp {
 			GamesRef.child(app.gameID).update({
 				[player + "Actions"]: playerAction
 			}).then(_ => {
-				// console.log("action is pushed")
+				// this is where the app checks for (or waits for) an opponent action
 				app.opponentActionListener = GamesRef.child(app.gameID + "/" + opponent + "Actions").on("value", function(snapshot) {
-					// when receive update,
-					// if (snapshot.key !== app.lastOpponentAction) {
+					// opponent action was received
 					let opponentAction = snapshot.val();
 					if (typeof opponentAction === "string" && opponentAction.match(/(rock|paper|scissors)/)) {
-						// app.lastOpponentAction = snapshot.key;
-						console.log("enabling buttons after detecting opponent action");
+						// console.log("enabling rock/paper/scissors buttons after detecting opponent action");
 						$(".btn.game-action").prop("disabled", false);
-
+						//Now that opponent action was received, disable listener.
 						GamesRef.child(app.gameID + "/" + opponent + "Actions").off();
 
+						// Also, clear out player's own last action.
 						GamesRef.child(app.gameID).update({
 							[player + "Actions"]: null
 						})
-						console.log("snapshot.key", snapshot.key)
-						console.log("opponentAction", opponentAction)
+
+						// check who wins round
 						let outcome = checkWin(getPlay(playerAction), getPlay(opponentAction))
-						console.log(outcome)
+						// console.log(outcome)
 						if (outcome === 0) {
-							console.log("Game tied!")
-							GamesRef.child(app.gameID).once('value', snapshot => {
-								let oldTies = snapshot.val().ties;
-								// console.log("oldWins", oldWins);
-								let newTies = oldTies + 1
-								console.log("newTies", newTies);
-								GamesRef.child(app.gameID).update({
-									ties: newTies,
+							// console.log("Game tied!")
+							// so that only one player updates the tie count, haver player1 do it.
+							if (player === "player1") {
+								GamesRef.child(app.gameID).once('value', snapshot => {
+									let oldTies = snapshot.val().ties;
+									let newTies = oldTies + 1
+									GamesRef.child(app.gameID).update({
+										ties: newTies,
+									})
 								})
-							})
+							}
+
 						}
 						else if (outcome < 0) {
-							console.log("*You won that round")
+							// console.log("*You won that round")
 							GamesRef.child(app.gameID).once('value', snapshot => {
 								let oldWins = snapshot.val()[player + "Wins"]
-								// console.log("oldWins", oldWins);
 								let newWins = oldWins + 1
 								let playerWon = false;
 								if (newWins >= Math.floor(game.maxNumberOfGames / 2) + 1) {
 									playerWon = true;
 								}
-								// console.log("newWins", newWins);
-								// console.log(player + " Won?", playerWon)
 								GamesRef.child(app.gameID).update({
 									[player + "Wins"]: newWins,
 									[player + "Won"]: playerWon
-
 								})
-								console.log("playerWon", playerWon)
+								// console.log("playerWon", playerWon)
 								if (playerWon) {
 									GamesRef.child(app.gameID).update({
 										gameInProgress: false
 									})
-
 								}
 							})
 						}
 						else {
-							console.log("*You lost that round")
-							// The client who won the match will  update the database
-							// console.log("\n\n\n\n****** You lost ******")
-
+							// console.log("*You lost that round")
+							// score updates from other listener. The client who won the match will update the database
 						}
-
 					}
-					// console.log("opponentActions", opponentActions);
-					// let opponentAction = opponentActions[opponentActions.length - 1]
-
 				});
-
-
 			});
-
-			// gameid: snapshot.key
 		})
 
 	}
 
 	postMessage(event) {
-		console.log("in app.postMessage")
+		// console.log("in app.postMessage")
 		event.preventDefault();
 
 		let message = $("#new-message-text").val().trim();
@@ -426,129 +472,150 @@ let RPSApp = class RPSApp {
 
 	}
 
+	registerNewUserClick(event) {
+		event.preventDefault();
+		// console.log($("#email-input").val());
+		let displayName = $("#name-input").val().trim();
+		let email = $("#email-input").val().trim();
+		let password = $("#password-input").val().trim();
+		let passwordConfirm = $("#password-confirm").val().trim();
+		if (!displayName.match("[a-zA-Z]+")) {
+			$("#name-input").removeClass("is-valid").addClass("is-invalid")
+		}
+		else {
+			$("#name-input").removeClass("is-invalid")
+		}
+		if (!email.match("[a-zA-Z]+.*@.*[a-zA-Z]+.*[.][a-zA-Z]+")) {
+			$("#email-input").addClass("is-invalid")
+		}
+		else {
+			$("#email-input").removeClass("is-invalid")			}
+		if (password.length < 6) {
+			$("#password-input").removeClass("is-valid").addClass("is-invalid")
+
+		}
+		else {
+			$("#password-input").removeClass("is-invalid")
+		}
+		if (password !== passwordConfirm) {
+			$("#password-confirm").removeClass("is-valid").addClass("is-invalid")
+		}
+		else {
+			$("#password-confirm").removeClass("is-invalid")
+		}
+		if (displayName.match("[a-zA-Z]+") && email.match("[a-zA-Z]+.*@.*[a-zA-Z]+.*[.][a-zA-Z]+") && password.length >= 6 && password === passwordConfirm) {
+			// if (true) {
+			$("#modal-registration-form .form-control").removeClass("is-invalid").addClass("is-valid");
+			$("#modal-registration-form .valid-feedback").text("Registering New User. Please wait...");
+
+			// console.log(email);
+			firebase.auth().createUserWithEmailAndPassword(email, password).then(function(data) {
+				// app.createFirebaseListeners();
+				let authUser = firebase.auth().currentUser;
+				$("#modal-registration-form .form-control").removeClass("is-invalid").addClass("is-valid");
+				$("#modal-registration-form .valid-feedback").text("New User Created!");
+
+				authUser.updateProfile({
+					uid: authUser.uid,
+					displayName: displayName
+				})
+				// .then(_ => app.onUserAuth(user));
+
+			}).catch(function(error) {
+				// Handle Errors here.
+				var errorCode = error.code;
+				var errorMessage = error.message;
+				// console.log("had error with firebase.auth()", error)
+				// $("#modal-registration-form").addClass("form-control is-invalid")
+				$("#registration-feedback-div").addClass("is-invalid")
+				$("#modal-registration-form .form-control").removeClass("is-valid");
+				$("#registration-feedback").text(errorMessage);
+				// ...
+			});
+
+			// app.createFirebaseListeners();
+
+		}
+		else {
+			// console.log("Form data is invalid. Display message");
+			// handled above
+		}
+
+	};
+
+	loginUserClick(event) {
+		event.preventDefault();
+		// console.log($("#user-email").val());
+		let email = $("#user-email").val().trim();
+		let password = $("#user-password").val().trim();
+
+		if (!email.match("[a-zA-Z]+.*@.*[a-zA-Z]+.*[.][a-zA-Z]+")) {
+			$("#modal-login-form .form-control").removeClass("is-valid").addClass("is-invalid");
+			$("#modal-login-form .invalid-feedback").text("Email address does not appear valid.");
+		}
+		else if (password.length <6 ) {
+			$("#modal-login-form .form-control").removeClass("is-valid").addClass("is-invalid");
+			$("#modal-login-form .invalid-feedback").text("Password must be at least 6 characters.");
+		}
+		else {
+			$("#modal-login-form .form-control").removeClass("is-invalid").addClass("is-valid");
+			$("#modal-login-form .valid-feedback").text("Logging in. Please wait...");
+			firebase.auth().signInWithEmailAndPassword(email, password).then(function(data) {
+				// console.log("user logged in", data);
+				// Don't need to do anything here. There is a separate listener that fires when a user is authenticated or deauthenticated.
+				// The listener is firebase.auth().onAuthStateChanged, and it takes a callback, app.authChangeCallback
+			}).catch(function(error) {
+				// Handle Errors here.
+				var errorCode = error.code;
+				var errorMessage = error.message;
+				// console.log(errorCode, errorMessage)
+				$("#modal-login-form .form-control").removeClass("is-valid").addClass("is-invalid");
+				$("#modal-login-form .invalid-feedback").text(errorMessage);
+			});
+		}
+	}
+
+
 	createAppEventListeners() {
 		$(document).on("click", ".user-available", app.tryToStartGame);
 		$(document).on("click", ".game .btn#end-game", app.endCurrentGame);
 		$(document).on("click", ".game .btn.game-action", app.gameAction);
 		$(document).on("click", "#new-message-send", app.postMessage);
-		$(document).on("click", "button#new-game-from-modal", function(e) {
-			e.preventDefault();
-			console.log("starting new game");
-
-			$("#game-over-modal").modal("hide");
-			// create callback to create new game using same info initial info as ending game
-			let callback = function(game) {
-				let newGame = new RPSGame(game.player1, game.player2, game.maxNumberOfGames)
-				return newGame;
-			}
-			console.log("enabling buttons just before ending current game");
-
-			$(".btn.game-action").prop("disabled", false);
-
-			app.endCurrentGame(callback);
-		})
-
-		// $("button#new-game-from-modal").on("click", function(e) {
-		// 	e.preventDefault();
-		// 	console.log("starting new game");
-
-		// 	$("#game-over-modal").modal("hide");
-		// })
-
-		$("#add-user").on("click", function(event) {
-			// Don't refresh the page!
-			// console.log("detected click");
-			event.preventDefault();
-			// console.log($("#email-input").val());
-			let displayName = $("#name-input").val().trim();
-			let email = $("#email-input").val().trim();
-			let password = $("#password-input").val().trim();
-			let passwordConfirm = $("#password-confirm").val().trim();
-
-			if (displayName.match("[a-zA-Z]+") && email.match("[a-zA-Z]+.*@.*[a-zA-Z]+.*[.][a-zA-Z]+") && password === passwordConfirm) {
-				// if (true) {
-
-				// console.log(email);
-				firebase.auth().createUserWithEmailAndPassword(email, password).then(function(data) {
-					// app.createFirebaseListeners();
-					let user = firebase.auth().currentUser;
-
-					user.updateProfile({
-						uid: user.uid,
-						displayName: displayName
-					}).then(_ => app.onUserAuth(user));
-
-				}).catch(function(error) {
-					// Handle Errors here.
-					var errorCode = error.code;
-					var errorMessage = error.message;
-					console.log("had error with firebase.auth()", error)
-					// ...
-				});
-
-				// app.createFirebaseListeners();
-
-			}
-			else {
-				console.log("Form data is invalid. Display message");
-			}
-
-		});
-
-		$("#user-signin").on("click", function(event) {
-			// Don't refresh the page!
-			// console.log("detected click");
-			event.preventDefault();
-			// console.log($("#user-email").val());
-			let email = $("#user-email").val().trim();
-			let password = $("#user-password").val().trim();
-
-			if (email.length > 0 && password.length > 0) {
-
-				// console.log(email);
-				firebase.auth().signInWithEmailAndPassword(email, password).then(function(data) {
-					console.log("user logged in", data);
-					// app.createFirebaseListeners();
-					// app.onUserAuth(data);
-				}).catch(function(error) {
-					// Handle Errors here.
-					var errorCode = error.code;
-					var errorMessage = error.message;
 
 
-				});
-				// app.createFirebaseListeners()
+		$("#register-button").on("click", app.registerNewUserClick)
 
-			}
 
-		});
+		$("#user-signin").on("click", app.loginUserClick);
 
 
 		$("#logout-button").on("click", function(event) {
+			// console.log("logging off")
 			if ($(this).text().match("Logoff")) {
-				console.log("logging off")
+				// console.log("logging off")
 				if (app.gathering) {
 					app.gathering.leave();
 				}
-
 				firebase.auth().signOut().then(function() {
 					app.removeFirebaseListeners()
 					// Sign-out successful.
-					console.log("Sign-out successful")
+					// console.log("Sign-out successful")
 				}).catch(function(error) {
-					console.log(error)
+					// console.log(error)
 					// An error happened.
 				});
 
 			}
 			else {
-				$(".card#user-signin, .card#user-create").show();
+				$(".modal").modal("hide")
+				$("#authenticate-modal").modal("show");
+				// $(".card#user-signin, .card#user-create").show();
 
 			}
 		})
 
 		// database.ref().on("value", function(snap) {
-		// 	console.log(snap.val());
+		// 	// console.log(snap.val());
 		// 	return;
 		// 	// $("#click-value").text(snap.val().clickCount);
 		// 	recentUser = snap.val().name;
@@ -561,7 +628,7 @@ let RPSApp = class RPSApp {
 		// 	$("#age-display").text(recentAge);
 		// 	$("#comment-display").text(recentMessage);
 		// }, function(err) {
-		// 	console.log("error while trying to set clickCounter from firebase")
+		// 	// console.log("error while trying to set clickCounter from firebase")
 		// 	// if (!recentUser) recentUser = initialUser;
 		// 	// if (!recentEmail) recentEmail = initialEmail;
 		// 	// if (!recentAge) recentAge = recentAge;

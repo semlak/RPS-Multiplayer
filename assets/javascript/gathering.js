@@ -23,6 +23,18 @@ var Gathering = (function() {
         this.myName = '';
         this.user = null;
 
+        this.updateStatus = function(uid, data) {
+            this.myName = data;
+            var presenceRef = this.db.ref(".info/connected");
+            var self = this;
+            presenceRef.on("value", function(snap) {
+                if (snap.val()) {
+                    self.user.onDisconnect().remove();
+                    self.user.set(self.myName);
+                }
+            });
+        }
+
         this.join = function(uid, displayName) {
             if(this.user) {
                 // console.error('Already joined.');

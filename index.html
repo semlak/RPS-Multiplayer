@@ -18,9 +18,7 @@
 		<header>
 			<nav id="page-navbar" class="navbar fixed-top navbar-dark bg-primary navbar-expand-md">
 				<div class="container">
-					<a class="navbar-brand" href="#">
-						Rock-Paper-Scissors Multiplayer Game
-					</a>
+					<a class="navbar-brand" href="#">AwesomeRPS</a>
 					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon">
 						</span>
@@ -28,19 +26,10 @@
 					<div class="collapse navbar-collapse" id="navbarNavDropdown">
 						<ul class="nav nav-pills navbar-nav ml-auto">
 							<li class="nav-item">
-								<button type="button" class="btn btn-secondary square" id="options-button" data-toggle="modal" data-target="#helpModal">
-									Help
-								</button>
+								<button type="button" class="btn btn-secondary square" id="options-button" data-toggle="modal" data-target="#helpModal">Help</button>
 							</li>
 							<li class="nav-item">
-								<button type="button" class="btn btn-secondary square" id="options-button" data-toggle="modal" data-target="#optionsModal">
-									Options
-								</button>
-							</li>
-							<li class="nav-item">
-								<button type="button" class="btn btn-danger square" id="logout-button">
-									Logoff
-								</button>
+								<button type="button" class="btn btn-danger square" id="logout-button">Logoff</button>
 							</li>
 						</ul>
 					</div>
@@ -50,67 +39,16 @@
 		<div class="container wrapper">
 			<div class="row page-body">
 				<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12" id="app-container">
-					<div class="card border-primary user-authentication" id="user-create">
-						<div class="card-header  bg-primary bg text-white">
-							Sign up
-						</div>
-						<div class="card-body">
-							<form>
-								<div class="form-group">
-									<label for="displayName">
-										Name to Display
-									</label>
-									<input type="text" class="form-control" id="name-input" aria-describedby="nameHelp" placeholder="John Smith"/>
-								</div>
-								<div class="form-group">
-									<label for="exampleInputEmail1">
-										Email address
-									</label>
-									<input type="email" class="form-control" id="email-input" aria-describedby="emailHelp" placeholder="Enter email"/>
-								</div>
-								<div class="form-group">
-									<label for="exampleInputPassword1">
-										Password
-									</label>
-									<input type="password" class="form-control" id="password-input" placeholder="Password"/>
-								</div>
-								<div class="form-group">
-									<label for="exampleInputPassword1">
-										Confirm
-									</label>
-									<input type="password" class="form-control" id="password-confirm" placeholder="Password"/>
-								</div>
-								<button type="submit" id="add-user" class="btn btn-primary">
-									Submit
-								</button>
-							</form>
-						</div>
+					<div class="jumbotron text-center" id="landing-div">
+						<img src="./assets/images/rps.jpg" class="img-fluid" alt="Awesome Rock-Paper-Scissors Image">
+
+						<h1>AwesomeRPS<h1</h1>
+						<h3>A Multiplayer Rock-Paper-Scissors Game</h3>
+						<br>
+						<h6>(Click the Login button on the top right in the navbar to sign in or register)</h6>
+
 					</div>
-					<div class="card border-primary   user-authentication"  id='user-signin'>
-						<div class="card-header  bg-primary bg text-white">
-							Login
-						</div>
-						<div class="card-body">
-							<form>
-								<div class="form-group">
-									<label for="exampleInputEmail1">
-										Email address
-									</label>
-									<input type="email" class="form-control" id="user-email" aria-describedby="emailHelp" placeholder="Enter email"/>
-								</div>
-								<div class="form-group">
-									<label for="exampleInputPassword1">
-										Password
-									</label>
-									<input type="password" class="form-control" id="user-password" placeholder="Password"/>
-								</div>
-								<button type="submit" id="user-signin" class="btn btn-primary">
-									Submit
-								</button>
-							</form>
-						</div>
-					</div>
-					<br/>
+
 					<div class="card border-success game">
 						<div class="card-header text-white bg-success bg">
 							Your Active Game
@@ -154,9 +92,6 @@
 							Chat
 						</div>
 						<div class="card-body">
-						</div>
-						<div  class="card-footer">
-							<form>
 								<div class="form-group">
 									<textarea class="form-control"  id="new-message-text" value="" placeholder="Enter a message to send to the other player!" rows="2"></textarea>
 								</div>
@@ -164,6 +99,10 @@
 									Send Message
 								</button>
 							</form>
+
+						</div>
+						<div  class="card-footer">
+							<form>
 						</div>
 					</div>
 					<br/>
@@ -173,41 +112,22 @@
 						</div>
 						<div class="card-body">
 						</div>
+						<div class="card-footer">
+						</div>
 					</div>
-					<!-- 					<h1>
-											Welcome to My Awesome App
-										</h1> -->
-					<br/>
-					<!-- 					<div class="card border-info" id="firebaseui-auth-container">
-											<div class=card-body>
-												<div>
-													Sign-in status:
-													<span id="sign-in-status">
-													</span>
-												</div>
-												<div>
-													ID:
-													<span id="sign-in">
-													</span>
-												</div>
-												<div id="account-details">
-												</div>
-											</div>
-										</div>
-					 -->
 				</div>
 			</div>
 		</div>
+
+
 		<!-- ********* modals -->
 
 		<!-- modal for game help -->
 		<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-			<div class="modal-dialog" role="document">
+			<div class="modal-dialog modal-lg" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title" id="helpModalLabel">
-							App Help
-						</h5>
+						<h5 class="modal-title" id="helpModalLabel">App Help</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 							<span aria-hidden="true">
 								&times;
@@ -218,10 +138,7 @@
 						<ul class="list-group">
 							<li class="list-group-item">
 								This is a Multi-player
-								<a href="https://en.wikipedia.org/wiki/Rock%E2%80%93paper%E2%80%93scissors">
-									Rock-Paper-Scissors
-								</a>
-								game that lets users play against each other over the internet, in a web browser, written primarily in JavaScript.
+								<a href="https://en.wikipedia.org/wiki/Rock%E2%80%93paper%E2%80%93scissors">Rock-Paper-Scissors</a> game that lets users play against each other over the internet, in a web browser, written primarily in JavaScript.
 							</li>
 							<li class="list-group-item">
 								To Play:
@@ -240,6 +157,10 @@
 									</li>
 								</ol>
 							</li>
+							<li class="list-group-item">
+								View the project's GitHub page at <a href="https://github.com/semlak/RPS-Multiplayer" target="_blank">"https://github.com/semlak/RPS-Multiplayer"</a>
+							</li>
+
 						</ul>
 					</div>
 					<div class="modal-footer">
@@ -257,7 +178,7 @@
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title" id="game-over-title">You Over</h5>
+						<h5 class="modal-title" id="game-over-title">RPS-Multliplayer Game</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 							<span aria-hidden="true">&times;</span>
 						</button>
@@ -270,8 +191,142 @@
 
 					</div>
 					<div class="modal-footer">
-						<button type ="button" id="new-game-from-modal" class="btn btn-primary square">New Came</button>
+						<!-- <button type ="button" id="new-game-from-modal" class="btn btn-primary square">New Game</button> -->
 						<button type="button" class="btn btn-danger square" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- Modal for general feedback -->
+		<div class="modal fade" id="feedback-modal" tabindex="-1" role="dialog" aria-labelledby="feedback-label" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="feedback-modal-title">RPS-Multliplayer Game</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<!-- Text to be filled in here. For example: -->
+						Basic Message
+					</form>
+
+
+					</div>
+					<div class="modal-footer">
+						<!-- <button type ="button" id="new-game-from-modal" class="btn btn-primary square">New Game</button> -->
+						<button type="button" class="btn btn-danger square" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal for authentication (User Login or Registration) -->
+
+		<div id="authenticate-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="authenticte-label" aria-hidden="true">
+			<div class="modal-dialog modal-lg" role="document">
+				<div class="modal-content">
+					<div class="row">
+						<div class="col-md-7" style="border-right: 1px dotted #C2C2C2;padding-right: 30px;">
+							<!-- Nav tabs -->
+							<!-- modified from https://bootsnipp.com/snippets/VElzQ -->
+							<div class="nav nav-tabs" id="nav-tab" role="tablist">
+								<a class="nav-item nav-link active" id="nav-login-tab" data-toggle="tab" href="#nav-login" role="tab" aria-controls="nav-login" aria-selected="true">Login/Sign-Up</a>
+								<a class="nav-item nav-link" id="nav-registration-tab" data-toggle="tab" href="#nav-registration" role="tab" aria-controls="nav-registration" aria-selected="false">Registration</a>
+							</div>
+							<div class="tab-content" id="nav-tabContent">
+								<!-- Login Panel -->
+								<div class="tab-pane fade show active" id="nav-login" role="tabpanel" aria-labelledby="nav-login-tab">
+									<form class="form-horizontal" id="modal-login-form">
+										<div class="form-group">
+											<label for="user-email" class="col-sm-2 control-label">Email</label>
+											<div class="col-sm-12">
+												<input type="email" class="form-control" id="user-email" placeholder="Email" />
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="user-password" class="col-sm-2 control-label">Password</label>
+											<div class="col-sm-12">
+												<input type="password" class="form-control" id="user-password" placeholder="Password" />
+												<div class="valid-feedback">Logginig in. Please wait...</div>
+												<div class="invalid-feedback" id="login-feedback">Please fill in information.</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-sm-2"></div>
+											<div class="col-sm-10">
+												<div class="btn btn-primary btn-sm" id="user-signin">Submit</div>
+												<!-- <a href="#" id="forgot-password">Forgot your password?</a> -->
+											</div>
+										</div>
+									</form>
+								</div>
+
+								<!-- Registration Panel -->
+								<div class="tab-pane fade" id="nav-registration" role="tabpanel" aria-labelledby="nav-registration-tab">
+									<form class="form-horizontal" id="modal-registration-form">
+										<div class="form-group">
+											<label for="name-input" class="col-sm-2 control-label">Name</label>
+											<div class="col-sm-12">
+												<input type="text" class="form-control" id="name-input" placeholder="Name" />
+												<div class="invalid-feedback">Please choose a Display Name.</div>
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="email-input" class="col-sm-2 control-label">Email</label>
+											<div class="col-sm-12">
+												<input type="email" class="form-control" id="email-input" placeholder="Email" />
+												<div class="invalid-feedback">Please enter a valid-looking email.</div>
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="password-input" class="col-sm-2 control-label">Password</label>
+											<div class="col-sm-12">
+												<input type="password" class="form-control" id="password-input" placeholder="Password (6-character minimum)" />
+												<div class="invalid-feedback">Please choose password of at least six characters.</div>
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="password-confirm" class="col-sm-2 control-label">Confirm</label>
+											<div class="col-sm-12">
+												<input type="password" class="form-control" id="password-confirm" placeholder="Confirm Password" />
+												<div class="invalid-feedback">Password and password confirmation must match.</div>
+											</div>
+										</div>
+										<div class="form-group">
+											<div class="form-control" id="registration-feedback-div"></div>
+											<div class="valid-feedback">Registering User. Please wait...</div>
+											<div class="invalid-feedback" id="registration-feedback"></div>
+										</div>
+										<div class="row">
+											<div class="col-sm-2"></div>
+											<div class="col-sm-10">
+												<div class="btn btn-primary btn-sm" id="register-button">Save & Continue</div>
+												<div class="btn btn-default btn-sm">Cancel</div>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+							<!-- Sign in with Google of Facebook -->
+							<div id="OR" class="hidden-xs">OR</div>
+						</div>
+						<div class="col-md-5">
+							<div class="row text-center sign-with">
+								<div class="col-md-12">
+									<h3>Sign in with</h3>
+								</div>
+								<div class="col-md-12">
+									<div class="btn-group btn-group-justified">
+										<div class="btn btn-primary disabled">Facebook</div>
+										<div class="btn btn-danger disabled">Google</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
