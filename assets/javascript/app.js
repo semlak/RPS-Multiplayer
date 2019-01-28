@@ -558,11 +558,11 @@ let RPSApp = class RPSApp {
 
   loginViaFacebookClick(e) {
     e.preventDefault();
-    console.log('trying to login via google');
+    console.log('trying to login via facebook');
     const provider = new firebase.auth.FacebookAuthProvider();
     firebase.auth().signInWithPopup(provider)
-      .then((result) => console.log('Google SignIn result:', result))
-      .catch(err => console.log('Google SignIn err:', err));
+      .then((result) => console.log('facebook SignIn result:', result))
+      .catch(err => console.log('facebook SignIn err:', err));
   };
 
   loginUserClick(event) {
@@ -610,6 +610,7 @@ let RPSApp = class RPSApp {
 
     $("#user-signin").on("click", app.loginUserClick);
     $("#google-signin").on("click", app.loginViaGoogleClick);
+    $("#facebook-signin").on("click", app.loginViaFacebookClick);
 
 
     $("#logout-button").on("click", function(event) {
