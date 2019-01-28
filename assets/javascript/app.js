@@ -565,6 +565,16 @@ let RPSApp = class RPSApp {
       .catch(err => console.log('facebook SignIn err:', err));
   };
 
+
+  loginViaGithubClick(e) {
+    e.preventDefault();
+    console.log('trying to login via github');
+    const provider = new firebase.auth.GithubAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => console.log('github SignIn result:', result))
+      .catch(err => console.log('github SignIn err:', err));
+  };
+
   loginUserClick(event) {
     event.preventDefault();
     // console.log($("#user-email").val());
@@ -584,7 +594,10 @@ let RPSApp = class RPSApp {
       $("#modal-login-form .valid-feedback").text("Logging in. Please wait...");
       firebase.auth().signInWithEmailAndPassword(email, password).then(function(data) {
         // console.log("user logged in", data);
-        // Don't need to do anything here. There is a separate listener that fires when a user is authenticated or deauthenticated.
+        // Don't need to do much here. There is a separate listener that fires when a user is authenticated or deauthenticated. However, we do want to clear the login form.
+        $('#user-email').val();
+        $('#user-password').val();
+        $("#modal-login-form .form-control").removeClass("is-invalid").removeClass("is-valid");
         // The listener is firebase.auth().onAuthStateChanged, and it takes a callback, app.authChangeCallback
       }).catch(function(error) {
         // Handle Errors here.
@@ -610,7 +623,7 @@ let RPSApp = class RPSApp {
 
     $("#user-signin").on("click", app.loginUserClick);
     $("#google-signin").on("click", app.loginViaGoogleClick);
-    $("#facebook-signin").on("click", app.loginViaFacebookClick);
+    $("#facebook-signin").on("click", app.loginViaGithubClick);
 
 
     $("#logout-button").on("click", function(event) {
