@@ -1,25 +1,25 @@
 /* general styling */
 
 body {
-	font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-	font-size: 18px;
-	line-height: 34px;
-	color: #000;
-	background-attachment: fixed;
-	background: #000;
-	/*background: #fff;*/
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 34px;
+  color: #000;
+  background-attachment: fixed;
+  background: #000;
+  /*background: #fff;*/
 }
 
 
 .container.wrapper {
-	/* this top padding is used to offset the navbar's absolute positioning.  For smaller viewport, media query is used to remove top-padding and change navbar positioning to static */
-	padding-top: 90px;
-	padding-bottom: 40px;
-	margin-bottom: 40px;
+  /* this top padding is used to offset the navbar's absolute positioning.  For smaller viewport, media query is used to remove top-padding and change navbar positioning to static */
+  padding-top: 90px;
+  padding-bottom: 40px;
+  margin-bottom: 40px;
 }
 
 .square {
-	border-radius: 0!important;
+  border-radius: 0!important;
 }
 
 
@@ -28,25 +28,25 @@ body {
 }
 
 .jumbotron {
-	display: none;
+  display: none;
 }
 
 .card.game {
- 	display: none;
+   display: none;
 }
 
 
 .card#available-users {
- 	display: none;
+   display: none;
 }
 
 .card#available-users .btn {
-	margin-left: 1em;
+  margin-left: 1em;
 }
 
 
 #registration-feedback-div {
-	display: none;
+  display: none;
 }
 
 
@@ -54,12 +54,12 @@ body {
 
 /* the actual chat messages. Will show once there is a message to display*/
 .game.chat .card-footer {
-	font-family: "Arial Black", Verdana, Courier, Arial, "Helvetica Neue", Helvetica, sans-serif;
-	display: none;
+  font-family: "Arial Black", Verdana, Courier, Arial, "Helvetica Neue", Helvetica, sans-serif;
+  display: none;
 }
 
 .game.chat .playerid {
-	font-weight: bold
+  font-weight: bold
 }
 
 .game.chat .playerid.player {
@@ -71,11 +71,11 @@ body {
 }
 
 .card {
-	margin-bottom : 2em;
+  margin-bottom : 2em;
 }
 
 .card#available-users .card-body {
-	min-height: 10em;
+  min-height: 10em;
  }
 
 
@@ -83,14 +83,14 @@ body {
 
 
 .tab-content {
-	width: 100%;
+  width: 100%;
 }
 */
 
 
 
 .nav-item {
-	margin-left: 2em;
+  margin-left: 2em;
 }
 
 
@@ -114,7 +114,7 @@ body {
   /*width: 50%;*/
 }
 .model-content {
-	/*width: 100%;*/
+  /*width: 100%;*/
 }
 
 
@@ -150,4 +150,25 @@ div#OR {
     top: 40%;
     z-index: 1;
     background: #DFDFDF;
+}
+
+
+.btn#github-signin {
+    color: #fff;
+    background-color: #444;
+    border-color: rgba(0,0,0,0.2);
+}
+
+#github-signin:hover {
+    color: #fff;
+    background-color: #2b2b2b;
+    border-color: rgba(0,0,0,0.2);
+}
+
+#github-signin:not([disabled]):not(.disabled).active, #github-signin:not([disabled]):not(.disabled):active {
+    /* border-color: #b21f2d;                       */
+    /* box-shadow: 0 0 0 0.2rem rgba(220,53,69,.5); */
+    /* background-color: #1a252f; */
+    box-shadow: 0 0 0 0.2rem rgba(76, 91, 106, 0.5);
+    border-color: #151e27;
 }

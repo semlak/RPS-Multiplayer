@@ -623,7 +623,8 @@ let RPSApp = class RPSApp {
 
     $("#user-signin").on("click", app.loginUserClick);
     $("#google-signin").on("click", app.loginViaGoogleClick);
-    $("#facebook-signin").on("click", app.loginViaGithubClick);
+    // $("#facebook-signin").on("click", app.loginViaFacebookClick);
+    $("#github-signin").on("click", app.loginViaGithubClick);
 
 
     $("#logout-button").on("click", function(event) {
