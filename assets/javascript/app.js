@@ -693,7 +693,7 @@ $(document).ready(function() {
   // initApp()
   // });
 
-  $("#authenticate-modal").modal("show");
+  // $("#authenticate-modal").modal("show");
 
 
 })
